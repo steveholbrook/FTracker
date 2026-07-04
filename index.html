@@ -161,7 +161,7 @@ canvas { font-size: var(--app-font-size) !important; }
   </div>
   <div class="panel firebase-panel no-print">
     <div class="panel-header">
-      <div><h2>Firebase Cloud Database</h2><p>This version auto-connects to Firebase project <strong>fintracker-8bb82</strong>. Users with the same Data Key share the same tracker state.</p></div>
+      <div><h2>Shared Cloud Database</h2><p>This version auto-connects to the shared cloud workspace. Users with the same Data Key share the same tracker state.</p></div>
     </div>
     <div class="panel-body">
       <div class="controls">
@@ -171,8 +171,8 @@ canvas { font-size: var(--app-font-size) !important; }
         <button class="action secondary" id="firebaseLoadBtn" type="button">Load Cloud Data</button>
         <button class="action secondary" id="firebaseSaveBtn" type="button">Save Cloud Data</button>
       </div>
-      <div id="firebaseStatus" class="firebase-status"><span class="dot"></span><span>Connecting to Firebase automatically…</span></div>
-      <p class="firebase-help">The Firebase configuration is embedded in this app. Change only the Data Key if you need a separate project tracker workspace. For production use, secure Firestore with authenticated-only rules.</p>
+      <div id="firebaseStatus" class="firebase-status"><span class="dot"></span><span>Connecting to shared cloud database automatically…</span></div>
+      <p class="firebase-help">The cloud connection is embedded in this app. Change only the Data Key if you need a separate project tracker workspace. For production use, restrict access with authenticated-only security rules.</p>
     </div>
   </div>
   <div class="kpi-grid" id="kpiGrid"></div>
@@ -322,7 +322,7 @@ canvas { font-size: var(--app-font-size) !important; }
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
 <script>
 "use strict";
-const APP_VERSION = "2.10.1-firebase-auto";
+const APP_VERSION = "2.10.2-cloud-auto";
 const STORAGE_KEY = "financialTracker.blank.v2";
 const FIREBASE_SETTINGS_KEY = STORAGE_KEY + ".firebase";
 const DEFAULT_FIREBASE_PROJECT_KEY = "gwf-phase3-financial-tracker";
@@ -580,7 +580,7 @@ async function initialiseFirebaseFromInputs(){
     try{ config=JSON.parse(configInput.value); }catch(e){ config=DEFAULT_FIREBASE_CONFIG; }
   }
   if(!config.apiKey || !config.projectId || !config.appId){
-    const err=new Error("Embedded Firebase config is incomplete.");
+    const err=new Error("Embedded cloud database config is incomplete.");
     updateFirebaseStatus(err.message,"error");
     throw err;
   }
@@ -592,22 +592,22 @@ async function initialiseFirebaseFromSavedConfig(showStatus=false){
   const projectKey=saved.projectKey || DEFAULT_FIREBASE_PROJECT_KEY;
   populateFirebaseInputs();
   try{ await initialiseFirebase(config, projectKey, false); return true; }
-  catch(e){ if(showStatus) updateFirebaseStatus(`Firebase connection failed: ${e.message}`,"error"); return false; }
+  catch(e){ if(showStatus) updateFirebaseStatus(`Cloud database connection failed: ${e.message}`,"error"); return false; }
 }
 async function initialiseFirebase(config, projectKey, persistSettings){
-  if(typeof firebase==="undefined") throw new Error("Firebase SDK was not loaded. Check internet access or CDN restrictions.");
+  if(typeof firebase==="undefined") throw new Error("Cloud database SDK was not loaded. Check internet access or CDN restrictions.");
   firebaseClient.projectKey=projectKey;
   firebaseClient.config=config;
   if(!firebase.apps.length) firebaseClient.app=firebase.initializeApp(config);
   else firebaseClient.app=firebase.app();
-  try{ if(firebase.analytics && config.measurementId) firebase.analytics(); }catch(e){ console.warn("Firebase Analytics not initialised:", e.message); }
+  try{ if(firebase.analytics && config.measurementId) firebase.analytics(); }catch(e){ console.warn("Cloud analytics not initialised:", e.message); }
   firebaseClient.db=firebase.firestore();
   // Anonymous auth is optional but recommended. If not enabled, the app still tries Firestore so open/test rules can work during setup.
   try{ await firebase.auth().signInAnonymously(); }catch(e){ console.warn("Anonymous auth not active or allowed:", e.message); }
   firebaseClient.connected=true;
   firebaseClient.lastError="";
   if(persistSettings) saveFirebaseSettings({config, projectKey});
-  updateFirebaseStatus(`Auto-connected to Firebase project ${config.projectId}; data key: ${projectKey}.`,"connected");
+  updateFirebaseStatus(`Auto-connected to shared cloud database; data key: ${projectKey}.`,"connected");
   return true;
 }
 function firebaseDocRef(){
@@ -622,7 +622,7 @@ async function firebaseSavePayload(payload){
     updateFirebaseStatus(`Cloud save complete for ${firebaseClient.projectKey} at ${new Date().toLocaleTimeString("en-AU")}.`,"connected");
     return true;
   }catch(e){
-    console.error("Firebase save failed", e);
+    console.error("Cloud save failed", e);
     updateFirebaseStatus(`Cloud save failed: ${e.message}. Local backup was still saved in this browser.`,"error");
     return false;
   }
@@ -638,7 +638,7 @@ async function firebaseLoadSavedState(){
     updateFirebaseStatus(`Cloud data loaded for ${firebaseClient.projectKey}.`,"connected");
     return data;
   }catch(e){
-    console.error("Firebase load failed", e);
+    console.error("Cloud load failed", e);
     updateFirebaseStatus(`Cloud load failed: ${e.message}. The app will use local browser cache if available.`,"error");
     return null;
   }

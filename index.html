@@ -107,14 +107,59 @@ canvas { font-size: var(--app-font-size) !important; }
 
 
 .firebase-status{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}.firebase-status .dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;display:inline-block}.firebase-status.connected .dot{background:#16a34a}.firebase-status.error .dot{background:#dc2626}.firebase-config-area{min-width:360px;min-height:84px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:calc(var(--app-font-size) * .78)!important}.firebase-help{font-size:calc(var(--app-font-size) * .82)!important;color:var(--muted);line-height:1.45}.firebase-panel .controls{align-items:flex-end}.firebase-panel .control.wide-config{min-width:380px;flex:2}.sync-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:#fff;color:var(--brand-dark);font-weight:800}
+
+/* v3.0 multi-project login and role controls */
+.login-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0f2f63,#143c80 55%,#0f766e);display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{width:min(760px,96vw);background:#fff;border-radius:22px;box-shadow:0 28px 70px rgba(0,0,0,.28);overflow:hidden;border:1px solid rgba(255,255,255,.3)}
+.login-hero{padding:24px 28px;background:linear-gradient(135deg,#eef5ff,#fff)}
+.login-hero h1{margin:0;color:var(--brand-dark);font-size:30px!important}
+.login-hero p{margin:8px 0 0;color:var(--muted)}
+.login-body{padding:22px 28px}.login-grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:14px;align-items:end}.login-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.login-error{display:none;margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--red-bg);color:var(--red);border:1px solid #f3b5b9}.login-error.show{display:block}.project-add-panel{display:none;margin-top:14px;padding:14px;border:1px dashed #b9c6d8;border-radius:14px;background:#f8fbff}.project-add-panel.show{display:block}.project-context{font-weight:850;color:#fff}.role-pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);border-radius:999px;padding:8px 10px;font-weight:850}.viewer-banner{display:none;margin:0 auto;max-width:1500px;padding:9px 22px;background:#fff7ed;color:#9a3412;border-bottom:1px solid #fed7aa;font-weight:750}.viewer-mode .viewer-banner{display:block}.viewer-mode .admin-only{display:none!important}.viewer-mode input:not(#fontSizeSlider),.viewer-mode select,.viewer-mode textarea{pointer-events:none;background:#f8fafc!important;color:#64748b!important}.viewer-mode button.action:not(.viewer-allowed),.viewer-mode a.action:not(.viewer-allowed){display:none!important}.viewer-mode .actual-input,.viewer-mode .actual-name-input,.viewer-mode .actual-meta-input{pointer-events:none;background:#f8fafc!important}.login-hidden{display:none!important}
+@media(max-width:720px){.login-grid{grid-template-columns:1fr}.login-hero h1{font-size:24px!important}}
+
 </style>
 </head>
 <body>
+
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-hero">
+      <h1>Financial Tracker</h1>
+      <p>Select a project workspace and access mode. Admin can load/edit data; Viewer can only view the selected project.</p>
+    </div>
+    <div class="login-body">
+      <div class="login-grid">
+        <label class="control"><span>Project</span><select id="loginProjectSelect"></select></label>
+        <label class="control"><span>Access Mode</span><select id="loginRoleSelect"><option value="viewer">Viewer</option><option value="admin">Admin</option></select></label>
+        <label id="loginPasswordWrap" class="control hidden"><span>Admin Password</span><input id="loginPasswordInput" type="password" placeholder="Enter admin password"></label>
+      </div>
+      <div class="login-actions">
+        <button class="action" id="loginEnterBtn" type="button">Open Project</button>
+        <button class="action secondary" id="showAddProjectBtn" type="button">Add Project</button>
+      </div>
+      <div id="loginError" class="login-error"></div>
+      <div id="addProjectPanel" class="project-add-panel">
+        <div class="login-grid">
+          <label class="control"><span>New Project Name</span><input id="newProjectNameInput" type="text" placeholder="e.g. Blackmores"></label>
+          <label class="control"><span>Admin Password</span><input id="newProjectAdminPassword" type="password" placeholder="admin"></label>
+        </div>
+        <div class="login-actions">
+          <button class="action" id="addProjectBtn" type="button">Create Project</button>
+          <button class="action ghost" id="cancelAddProjectBtn" type="button">Cancel</button>
+        </div>
+        <p class="hint">Default admin password is <strong>admin</strong>. Replace this with real authentication before production use.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
 <header>
   <div class="header-inner">
     <div class="title-row">
-      <div><h1>Financial Tracker</h1></div>
+      <div><h1>Financial Tracker</h1><div class="subtitle">Project: <span id="activeProjectName" class="project-context">Not selected</span></div></div>
       <div class="header-meta">
+        <span class="role-pill">Mode: <strong id="activeRoleLabel">—</strong></span>
+        <button class="action secondary viewer-allowed" id="switchProjectBtn" type="button">Switch Project</button>
         <span class="meta-pill">Derived Week: <strong id="headerCurrentWeek">—</strong></span>
         <span class="meta-pill">% Complete: <strong id="headerPercentComplete">—</strong></span>
         <span class="meta-pill">Last saved: <strong id="headerLastSaved">Not saved</strong></span>
@@ -128,6 +173,7 @@ canvas { font-size: var(--app-font-size) !important; }
       <button class="wizard-step" data-target="invoicesView" data-step="invoices"><span class="circle">4</span><span><strong>Invoices</strong><small id="wizardStatusInvoices">Create governed billing</small></span></button>
     </div>
   </div>
+<div class="viewer-banner no-print">Viewer mode: this project is read-only. Data load, edit, reset, invoice and save controls are disabled.</div>
 </header>
 
 <main>
@@ -153,26 +199,26 @@ canvas { font-size: var(--app-font-size) !important; }
         <span class="meta-pill light">Derived Week: <strong id="derivedCurrentWeekLabel">—</strong></span>
         <label class="control"><span>Number of Weeks</span><input id="numberOfWeeksInput" type="number" min="1" step="1"></label>
         <label class="control"><span>% Complete</span><input id="percentCompleteInput" type="number" min="0" max="100" step="0.1"></label>
-        <button class="action" id="saveDashboardBtn">Save Dashboard Inputs</button>
-        <button class="action secondary" id="customerReportBtn">Customer PDF / Print Pack</button>
-        <button class="action danger" id="resetApplicationBtn">Reset Application</button>
+        <button class="action admin-only" id="saveDashboardBtn">Save Dashboard Inputs</button>
+        <button class="action secondary viewer-allowed" id="customerReportBtn">Customer PDF / Print Pack</button>
+        <button class="action danger admin-only" id="resetApplicationBtn">Reset Application</button>
       </div>
     </div>
   </div>
   <div class="panel firebase-panel no-print">
     <div class="panel-header">
-      <div><h2>Shared Cloud Database</h2><p>This version auto-connects to the shared cloud workspace. Users with the same Data Key share the same tracker state.</p></div>
+      <div><h2>Shared Cloud Database</h2><p>This version auto-connects to the shared cloud workspace. Each project uses its own shared cloud data area. Users with the same project selection share the same tracker state.</p></div>
     </div>
     <div class="panel-body">
       <div class="controls">
-        <label class="control"><span>Data Key</span><input id="firebaseProjectKeyInput" type="text" value="gwf-phase3-financial-tracker" placeholder="gwf-phase3-financial-tracker"></label>
+        <label class="control"><span>Data Key</span><input id="firebaseProjectKeyInput" type="text" value="gwf" placeholder="project-key"></label>
         <textarea id="firebaseConfigInput" class="firebase-config-area hidden" aria-hidden="true"></textarea>
-        <button class="action secondary" id="firebaseConnectBtn" type="button">Reconnect</button>
-        <button class="action secondary" id="firebaseLoadBtn" type="button">Load Cloud Data</button>
-        <button class="action secondary" id="firebaseSaveBtn" type="button">Save Cloud Data</button>
+        <button class="action secondary viewer-allowed" id="firebaseConnectBtn" type="button">Reconnect</button>
+        <button class="action secondary viewer-allowed" id="firebaseLoadBtn" type="button">Load Cloud Data</button>
+        <button class="action secondary admin-only" id="firebaseSaveBtn" type="button">Save Cloud Data</button>
       </div>
       <div id="firebaseStatus" class="firebase-status"><span class="dot"></span><span>Connecting to shared cloud database automatically…</span></div>
-      <p class="firebase-help">The cloud connection is embedded in this app. Change only the Data Key if you need a separate project tracker workspace. For production use, restrict access with authenticated-only security rules.</p>
+      <p class="firebase-help">The cloud connection is embedded in this app. The Data Key is controlled by the selected project. Admin users can add projects from the login screen. For production use, restrict access with authenticated-only security rules.</p>
     </div>
   </div>
   <div class="kpi-grid" id="kpiGrid"></div>
@@ -205,15 +251,15 @@ canvas { font-size: var(--app-font-size) !important; }
       <div><h2>Actuals — Weekly PM Update</h2><p>Enter actual days worked per named role. Forecast-copied names can be updated in Actuals without changing the locked Forecast baseline.</p></div>
       <div class="controls no-print">
         <label class="control wider-control"><span>Actuals Interval</span><select id="actualsIntervalToggle"><option value="week">Weeks W1-W61</option><option value="month">Months M1-M15</option></select></label>
-        <button class="action" id="saveActualsBtn">Save Actuals</button>
-        <button class="action secondary" id="fiUploadBtn">FI Upload</button>
-        <button class="action secondary" id="addActualRowBtn">Add Actual Row</button>
-        <button class="action secondary" id="actualsFullscreenBtn">Full Screen Entry</button>
-        <button class="action secondary" id="resetUnsavedBtn">Reset Unsaved Changes</button>
-        <button class="action ghost" id="exportJsonBtn">Export JSON Backup</button>
-        <button class="action ghost" id="importJsonBtn">Import JSON Backup</button>
-        <button class="action ghost" id="exportCsvBtn">Export CSV</button>
-        <button class="action danger" id="clearDataBtn">Clear Local Saved Data</button>
+        <button class="action admin-only" id="saveActualsBtn">Save Actuals</button>
+        <button class="action secondary admin-only" id="fiUploadBtn">FI Upload</button>
+        <button class="action secondary admin-only" id="addActualRowBtn">Add Actual Row</button>
+        <button class="action secondary viewer-allowed" id="actualsFullscreenBtn">Full Screen Entry</button>
+        <button class="action secondary viewer-allowed" id="resetUnsavedBtn">Reset Unsaved Changes</button>
+        <button class="action ghost admin-only" id="exportJsonBtn">Export JSON Backup</button>
+        <button class="action ghost admin-only" id="importJsonBtn">Import JSON Backup</button>
+        <button class="action ghost viewer-allowed" id="exportCsvBtn">Export CSV</button>
+        <button class="action danger admin-only" id="clearDataBtn">Clear Local Saved Data</button>
         <input id="jsonFileInput" type="file" accept="application/json,.json" class="hidden">
         <input id="fiFileInput" type="file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hidden">
       </div>
@@ -240,8 +286,8 @@ canvas { font-size: var(--app-font-size) !important; }
         <label class="control wider-control"><span>Invoice No. Format</span><input id="invoiceNumberFormatInput" type="text" placeholder="AR-{CODE}-{SEQ}"></label>
         <label class="control wider-control"><span>PO Value</span><input id="invoicePoValueInput" type="number" min="0" step="0.01" placeholder="0.00"></label>
         <label class="control wider-control"><span>PDF Mode</span><select id="invoiceExportModeInput"><option value="customer">Customer-safe</option><option value="internal">Internal detail</option></select></label>
-        <button class="action" id="saveInvoicePeriodBtn">Save Invoice Period</button>
-        <button class="action secondary" id="printAllInvoicesBtn">Print Draft Preview</button>
+        <button class="action admin-only" id="saveInvoicePeriodBtn">Save Invoice Period</button>
+        <button class="action secondary viewer-allowed" id="printAllInvoicesBtn">Print Draft Preview</button>
       </div>
     </div>
     <div class="panel-body">
@@ -278,7 +324,7 @@ canvas { font-size: var(--app-font-size) !important; }
     <div class="panel-header"><div><h2>Contract Forecast — Read Only <span class="badge locked">Locked Baseline</span></h2><p>Forecast values are the contract baseline from the workbook and are intentionally not editable.</p></div></div>
     <div class="panel-body">
       <div class="filters no-print">
-        <button class="action secondary" id="loadForecastBtn">Load Forecast Spreadsheet</button>
+        <button class="action secondary admin-only" id="loadForecastBtn">Load Forecast Spreadsheet</button>
         <a class="action secondary link-button" id="downloadForecastTemplateBtn" href="gwf_forecast_upload_template_blank.xlsx" download>Download Blank GWF Forecast Template</a>
         <input id="forecastFileInput" class="hidden" type="file" accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
         <label class="control"><span>Stream</span><select id="filterStream"><option value="">All Streams</option></select></label>
@@ -286,7 +332,7 @@ canvas { font-size: var(--app-font-size) !important; }
         <label class="control"><span>Location</span><select id="filterLocation"><option value="">All Locations</option></select></label>
         <label class="control"><span>Name Search</span><input id="filterName" type="text" placeholder="Search name or role"></label>
         <button class="action secondary" id="clearFiltersBtn">Clear Filters</button>
-        <button class="action" id="forecastStatusCheckBtn">Status Check</button>
+        <button class="action viewer-allowed" id="forecastStatusCheckBtn">Status Check</button>
       </div>
       <div class="change-note" id="forecastLoadMessage">Forecast is locked. To change the baseline, load another spreadsheet using the GWF Forecast upload format.</div>
       <div class="table-wrap"><table id="forecastTable"></table></div>
@@ -301,7 +347,7 @@ canvas { font-size: var(--app-font-size) !important; }
           <label class="control"><span>Description</span><input id="crDescInput" type="text" placeholder="Scope / forecast change description"></label>
           <label class="control"><span>Days Impact</span><input id="crDaysInput" type="number" step="0.25" placeholder="0"></label>
           <label class="control"><span>Value Impact</span><input id="crValueInput" type="number" step="0.01" placeholder="0"></label>
-          <button class="action" id="addChangeRequestBtn">Add CR</button>
+          <button class="action admin-only" id="addChangeRequestBtn">Add CR</button>
         </div>
         <div class="table-wrap"><table id="changeRequestTable"></table></div>
       </div>
@@ -322,10 +368,14 @@ canvas { font-size: var(--app-font-size) !important; }
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
 <script>
 "use strict";
-const APP_VERSION = "2.10.2-cloud-auto";
+const APP_VERSION = "3.0.0-multi-project";
 const STORAGE_KEY = "financialTracker.blank.v2";
 const FIREBASE_SETTINGS_KEY = STORAGE_KEY + ".firebase";
-const DEFAULT_FIREBASE_PROJECT_KEY = "gwf-phase3-financial-tracker";
+const DEFAULT_FIREBASE_PROJECT_KEY = "gwf";
+const DEFAULT_PROJECTS = [{ name:"GWF", key:"gwf" }, { name:"Blackmores", key:"blackmores" }];
+const ADMIN_PASSWORD = "admin";
+let projectRegistry = clone(DEFAULT_PROJECTS);
+let activeProject = { name:"", key:"", role:"" };
 const DEFAULT_FIREBASE_CONFIG = {
   apiKey: "AIzaSyBMThAMsXUf_ZC615hGjOiQhwsBEAcOX1Q",
   authDomain: "fintracker-8bb82.firebaseapp.com",
@@ -356,6 +406,24 @@ const INVOICE_STATUSES = ["Draft","PM reviewed","Finance reviewed","Sent to cust
 let dirty = false;
 
 function clone(value){ return JSON.parse(JSON.stringify(value)); }
+function slugifyProjectName(name){ return String(name||"").trim().toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"") || `project-${Date.now()}`; }
+function activeProjectKey(){ return String(activeProject.key || firebaseClient.projectKey || DEFAULT_FIREBASE_PROJECT_KEY).trim() || DEFAULT_FIREBASE_PROJECT_KEY; }
+function projectStorageKey(){ return `${STORAGE_KEY}.${activeProjectKey()}`; }
+function isAdminMode(){ return activeProject.role === "admin"; }
+function isViewerMode(){ return activeProject.role === "viewer"; }
+function showLoginError(msg){ const el=document.getElementById("loginError"); if(el){ el.textContent=msg; el.classList.add("show"); } }
+function clearLoginError(){ const el=document.getElementById("loginError"); if(el){ el.textContent=""; el.classList.remove("show"); } }
+function renderProjectDropdown(){ const sel=document.getElementById("loginProjectSelect"); if(!sel) return; sel.innerHTML=projectRegistry.map(p=>`<option value="${esc(p.key)}">${esc(p.name)}</option>`).join(""); }
+function setRoleMode(role){ activeProject.role=role; document.body.classList.toggle("viewer-mode", role==="viewer"); document.body.classList.toggle("admin-mode", role==="admin"); const label=document.getElementById("activeRoleLabel"); if(label) label.textContent=role?role.charAt(0).toUpperCase()+role.slice(1):"—"; }
+function updateProjectHeader(){ const el=document.getElementById("activeProjectName"); if(el) el.textContent=activeProject.name || "Not selected"; const keyInput=document.getElementById("firebaseProjectKeyInput"); if(keyInput) keyInput.value=activeProjectKey(); }
+async function registryDocRef(){ if(!firebaseClient.connected || !firebaseClient.db) return null; return firebaseClient.db.collection("financialTrackerProjects").doc("__registry__").collection("state").doc("projects"); }
+async function loadProjectRegistry(){ try{ await initialiseFirebaseFromSavedConfig(false); const ref=await registryDocRef(); if(!ref) return; const snap=await ref.get(); if(snap.exists && Array.isArray(snap.data().projects) && snap.data().projects.length){ projectRegistry=snap.data().projects.filter(p=>p&&p.name&&p.key); } }catch(e){ console.warn("Project registry load failed", e.message); } finally { renderProjectDropdown(); } }
+async function saveProjectRegistry(){ try{ await initialiseFirebaseFromSavedConfig(false); const ref=await registryDocRef(); if(ref) await ref.set({projects:projectRegistry, updatedAt: firebase.firestore.FieldValue.serverTimestamp()},{merge:false}); }catch(e){ console.warn("Project registry save failed", e.message); } }
+function resetInMemoryState(){ forecastBaseline=[]; resources=[]; baselineMeta={ source:"No forecast loaded", loadedAt:"", fileName:"No forecast loaded", weekCount:0, dataWeekCount:0 }; forecastChangeRequests=[]; invoicePeriods=[]; invoiceCodeConfigs={}; changeLog=[]; lastFiReconciliation=null; setWeekHorizon(50,{allowBelowData:true,reason:"Project switch"}); settings={currentWeek:1,startDate:"",percentComplete:0,lastSaved:null,actualsInterval:"week",fontSize:14,numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer"}; dirty=false; }
+async function openSelectedProject(){ clearLoginError(); const projectKey=document.getElementById("loginProjectSelect")?.value || DEFAULT_FIREBASE_PROJECT_KEY; const role=document.getElementById("loginRoleSelect")?.value || "viewer"; const project=projectRegistry.find(p=>p.key===projectKey) || projectRegistry[0]; if(role==="admin" && (document.getElementById("loginPasswordInput")?.value || "") !== ADMIN_PASSWORD){ showLoginError("Admin password is incorrect. Default password is admin."); return; } activeProject={name:project.name,key:project.key,role}; firebaseClient.projectKey=project.key; saveFirebaseSettings({config:DEFAULT_FIREBASE_CONFIG, projectKey:project.key}); updateProjectHeader(); setRoleMode(role); resetInMemoryState(); document.getElementById("loginScreen")?.classList.add("login-hidden"); populateFirebaseInputs(); await initialiseFirebaseFromInputs().catch(()=>false); await loadState(); dirty=false; renderAll(); }
+function initialiseLogin(){ renderProjectDropdown(); const role=document.getElementById("loginRoleSelect"); role?.addEventListener("change",()=>{ document.getElementById("loginPasswordWrap")?.classList.toggle("hidden", role.value!=="admin"); }); document.getElementById("loginEnterBtn")?.addEventListener("click",openSelectedProject); document.getElementById("showAddProjectBtn")?.addEventListener("click",()=>{ document.getElementById("addProjectPanel")?.classList.add("show"); }); document.getElementById("cancelAddProjectBtn")?.addEventListener("click",()=>{ document.getElementById("addProjectPanel")?.classList.remove("show"); }); document.getElementById("addProjectBtn")?.addEventListener("click",async()=>{ clearLoginError(); const pw=document.getElementById("newProjectAdminPassword")?.value||""; const name=(document.getElementById("newProjectNameInput")?.value||"").trim(); if(pw!==ADMIN_PASSWORD){ showLoginError("Admin password is required to add a project."); return; } if(!name){ showLoginError("Enter a project name."); return; } const key=slugifyProjectName(name); if(projectRegistry.some(p=>p.key===key)){ showLoginError("A project with this name/key already exists."); return; } projectRegistry.push({name,key}); await saveProjectRegistry(); renderProjectDropdown(); document.getElementById("loginProjectSelect").value=key; document.getElementById("newProjectNameInput").value=""; document.getElementById("newProjectAdminPassword").value=""; document.getElementById("addProjectPanel")?.classList.remove("show"); }); document.getElementById("switchProjectBtn")?.addEventListener("click",()=>{ document.getElementById("loginScreen")?.classList.remove("login-hidden"); }); }
+function guardAdminAction(label="This action"){ if(!isAdminMode()){ alert(`${label} is available to Admin users only.`); return false; } return true; }
+
 function createEmptyWeekObject(){ const out={}; for(let w=1;w<=WEEK_COUNT;w++) out[String(w)]=0; return out; }
 function createResourcesFromBase(){
   return clone(forecastBaseline).map(r=>({
@@ -529,6 +597,9 @@ function statusVAC(vac,bac){ if(vac>=0) return {level:"green",label:"Green",deta
 function buildStatePayload(){
   return {
     appVersion:APP_VERSION,
+    projectName:activeProject.name,
+    projectKey:activeProjectKey(),
+    savedByRole:activeProject.role,
     savedAt:new Date().toISOString(),
     currentWeek:settings.currentWeek,
     startDate:settings.startDate,
@@ -566,7 +637,7 @@ function populateFirebaseInputs(){
   const saved=loadFirebaseSettings();
   const keyInput=document.getElementById("firebaseProjectKeyInput");
   const configInput=document.getElementById("firebaseConfigInput");
-  const projectKey=saved.projectKey || firebaseClient.projectKey || DEFAULT_FIREBASE_PROJECT_KEY;
+  const projectKey=activeProjectKey();
   const config=saved.config || firebaseClient.config || DEFAULT_FIREBASE_CONFIG;
   if(keyInput) keyInput.value=projectKey;
   if(configInput) configInput.value=JSON.stringify(config,null,2);
@@ -589,7 +660,7 @@ async function initialiseFirebaseFromInputs(){
 async function initialiseFirebaseFromSavedConfig(showStatus=false){
   const saved=loadFirebaseSettings();
   const config=saved.config || DEFAULT_FIREBASE_CONFIG;
-  const projectKey=saved.projectKey || DEFAULT_FIREBASE_PROJECT_KEY;
+  const projectKey=activeProjectKey();
   populateFirebaseInputs();
   try{ await initialiseFirebase(config, projectKey, false); return true; }
   catch(e){ if(showStatus) updateFirebaseStatus(`Cloud database connection failed: ${e.message}`,"error"); return false; }
@@ -672,13 +743,14 @@ function applyStatePayload(payload){
   invoiceCodeConfigs=payload.invoiceCodeConfigs && typeof payload.invoiceCodeConfigs==="object" ? payload.invoiceCodeConfigs : {};
   changeLog=Array.isArray(payload.changeLog)?payload.changeLog.slice(0,200):[];
   mergeActualsPayload(payload.actuals||[]);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  localStorage.setItem(projectStorageKey(), JSON.stringify(payload));
   applyFontSize();
 }
 
 function saveState(){
+  if(isViewerMode()){ showMessage("actualsMessage","Viewer mode is read-only. No data was saved.","warn"); return buildStatePayload(); }
   const payload=buildStatePayload();
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(payload));
+  localStorage.setItem(projectStorageKey(),JSON.stringify(payload));
   firebaseSavePayload(payload);
   settings.lastSaved=payload.savedAt;
   dirty=false;
@@ -707,7 +779,7 @@ async function loadState(){
   if(cloudPayload){
     payload=cloudPayload;
   } else {
-    const saved=localStorage.getItem(STORAGE_KEY);
+    const saved=localStorage.getItem(projectStorageKey());
     if(!saved) return;
     try{ payload=JSON.parse(saved); }catch(e){ console.warn("Unable to parse local saved state",e); return; }
   }
@@ -777,6 +849,7 @@ function csvEscape(value){ const text=String(value??""); return /[",\n]/.test(te
 function downloadFile(filename,content,mime){ const blob=new Blob([content],{type:mime}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); }
 
 function updateHeader(){
+  updateProjectHeader();
   document.getElementById("headerCurrentWeek").textContent=settings.currentWeek;
   document.getElementById("headerPercentComplete").textContent=pct(settings.percentComplete,1);
   document.getElementById("headerLastSaved").textContent=settings.lastSaved?new Date(settings.lastSaved).toLocaleString("en-AU"):(dirty?"Unsaved changes":"Not saved");
@@ -932,6 +1005,8 @@ function updateWizard(){
   });
 }
 function initialise(){
+  document.addEventListener("click", (e)=>{ const adminEl=e.target.closest(".admin-only"); if(adminEl && !isAdminMode()){ e.preventDefault(); e.stopPropagation(); alert("Viewer mode is read-only. Select Admin to change project data."); } }, true);
+  updateProjectHeader(); setRoleMode(activeProject.role||"");
   const startInput=document.getElementById("startDateInput");
   if(startInput){
     startInput.value=settings.startDate || "";
@@ -992,7 +1067,7 @@ async function restoreSavedOrDefault(){
   dirty=false; applyFontSize(); renderAll(); showMessage("actualsMessage","Unsaved changes reset to last saved state.","warn");
 }
 function resetToBlankApplicationState(reason="Application reset"){
-  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(projectStorageKey());
   forecastBaseline=[];
   resources=[];
   baselineMeta={ source:"No forecast loaded", loadedAt:"", fileName:"No forecast loaded", weekCount:0, dataWeekCount:0 };
@@ -1596,7 +1671,50 @@ function proposedInvoiceHtml(line, allLines=false, mode=settings.invoiceExportMo
   const safeNote=mode==="internal"?"Internal detail mode includes individual names and rates. Do not issue externally without commercial approval.":"Customer-safe mode aggregates detail by stream / role / code and excludes individual names and day rates.";
   return `<!doctype html><html><head><title>${title}</title><style>body{font-family:Arial,sans-serif;color:#172033;margin:28px}h1{margin:0 0 4px}.muted{color:#64748b}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}.card{border:1px solid #dbe3ef;border-radius:10px;padding:12px}.label{font-size:11px;text-transform:uppercase;color:#64748b;font-weight:700}.value{font-size:22px;font-weight:800;margin-top:8px}table{border-collapse:collapse;width:100%;margin-top:14px}th,td{border:1px solid #dbe3ef;padding:8px;text-align:left;vertical-align:top}th{background:#f4f7fb}.num{text-align:right}.total{font-weight:800;background:#f8fafc}.note{border-left:4px solid #1d4ed8;background:#f8fbff;padding:10px 12px;margin-top:16px}@media print{button{display:none}}
 .firebase-status{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}.firebase-status .dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;display:inline-block}.firebase-status.connected .dot{background:#16a34a}.firebase-status.error .dot{background:#dc2626}.firebase-config-area{min-width:360px;min-height:84px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:calc(var(--app-font-size) * .78)!important}.firebase-help{font-size:calc(var(--app-font-size) * .82)!important;color:var(--muted);line-height:1.45}.firebase-panel .controls{align-items:flex-end}.firebase-panel .control.wide-config{min-width:380px;flex:2}.sync-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:#fff;color:var(--brand-dark);font-weight:800}
-</style></head><body><button onclick="window.print()">Print / Save as PDF</button><h1>${title}${period?` · ${esc(period.invoiceLabel)}`:""}</h1><div class="muted">Generated ${new Date().toLocaleString("en-AU")} · Period W${fromWeek}–W${toWeek}${period?` · Status: ${esc(period.status)}`:""}</div><div class="note">${esc(safeNote)}</div><div class="grid"><div class="card"><div class="label">Invoice Period End</div><div class="value">${esc(invoicePeriodDateLabel(toWeek))}</div></div><div class="card"><div class="label">Total Net Amount</div><div class="value">${currency(total)}</div></div><div class="card"><div class="label">Invoice Lines</div><div class="value">${lines.length}</div></div></div><h2>Invoice Summary</h2><table><thead><tr><th>Invoice Period End</th><th>PO</th><th>Code</th><th>Invoice No.</th><th class="num">Invoice Amount (Net)</th><th class="num">From Week</th><th class="num">To Week</th><th class="num">No. of Resource</th><th>Variance Explanation</th></tr></thead><tbody>${summaryRows}</tbody><tfoot><tr class="total"><td>Total</td><td></td><td></td><td></td><td class="num">${currency(total)}</td><td></td><td></td><td></td><td></td></tr></tfoot></table><h2>Supporting Actuals Detail</h2><table><thead>${detailHeader}</thead><tbody>${detailRows}</tbody></table><p class="muted">Draft invoice generated from Financial Tracker actuals. Review against contract terms, approved timesheets and purchase order controls before issuing externally.</p></body></html>`;
+
+/* v3.0 multi-project login and role controls */
+.login-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0f2f63,#143c80 55%,#0f766e);display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{width:min(760px,96vw);background:#fff;border-radius:22px;box-shadow:0 28px 70px rgba(0,0,0,.28);overflow:hidden;border:1px solid rgba(255,255,255,.3)}
+.login-hero{padding:24px 28px;background:linear-gradient(135deg,#eef5ff,#fff)}
+.login-hero h1{margin:0;color:var(--brand-dark);font-size:30px!important}
+.login-hero p{margin:8px 0 0;color:var(--muted)}
+.login-body{padding:22px 28px}.login-grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:14px;align-items:end}.login-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.login-error{display:none;margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--red-bg);color:var(--red);border:1px solid #f3b5b9}.login-error.show{display:block}.project-add-panel{display:none;margin-top:14px;padding:14px;border:1px dashed #b9c6d8;border-radius:14px;background:#f8fbff}.project-add-panel.show{display:block}.project-context{font-weight:850;color:#fff}.role-pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);border-radius:999px;padding:8px 10px;font-weight:850}.viewer-banner{display:none;margin:0 auto;max-width:1500px;padding:9px 22px;background:#fff7ed;color:#9a3412;border-bottom:1px solid #fed7aa;font-weight:750}.viewer-mode .viewer-banner{display:block}.viewer-mode .admin-only{display:none!important}.viewer-mode input:not(#fontSizeSlider),.viewer-mode select,.viewer-mode textarea{pointer-events:none;background:#f8fafc!important;color:#64748b!important}.viewer-mode button.action:not(.viewer-allowed),.viewer-mode a.action:not(.viewer-allowed){display:none!important}.viewer-mode .actual-input,.viewer-mode .actual-name-input,.viewer-mode .actual-meta-input{pointer-events:none;background:#f8fafc!important}.login-hidden{display:none!important}
+@media(max-width:720px){.login-grid{grid-template-columns:1fr}.login-hero h1{font-size:24px!important}}
+
+</style></head><body>
+
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-hero">
+      <h1>Financial Tracker</h1>
+      <p>Select a project workspace and access mode. Admin can load/edit data; Viewer can only view the selected project.</p>
+    </div>
+    <div class="login-body">
+      <div class="login-grid">
+        <label class="control"><span>Project</span><select id="loginProjectSelect"></select></label>
+        <label class="control"><span>Access Mode</span><select id="loginRoleSelect"><option value="viewer">Viewer</option><option value="admin">Admin</option></select></label>
+        <label id="loginPasswordWrap" class="control hidden"><span>Admin Password</span><input id="loginPasswordInput" type="password" placeholder="Enter admin password"></label>
+      </div>
+      <div class="login-actions">
+        <button class="action" id="loginEnterBtn" type="button">Open Project</button>
+        <button class="action secondary" id="showAddProjectBtn" type="button">Add Project</button>
+      </div>
+      <div id="loginError" class="login-error"></div>
+      <div id="addProjectPanel" class="project-add-panel">
+        <div class="login-grid">
+          <label class="control"><span>New Project Name</span><input id="newProjectNameInput" type="text" placeholder="e.g. Blackmores"></label>
+          <label class="control"><span>Admin Password</span><input id="newProjectAdminPassword" type="password" placeholder="admin"></label>
+        </div>
+        <div class="login-actions">
+          <button class="action" id="addProjectBtn" type="button">Create Project</button>
+          <button class="action ghost" id="cancelAddProjectBtn" type="button">Cancel</button>
+        </div>
+        <p class="hint">Default admin password is <strong>admin</strong>. Replace this with real authentication before production use.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<button onclick="window.print()">Print / Save as PDF</button><h1>${title}${period?` · ${esc(period.invoiceLabel)}`:""}</h1><div class="muted">Generated ${new Date().toLocaleString("en-AU")} · Period W${fromWeek}–W${toWeek}${period?` · Status: ${esc(period.status)}`:""}</div><div class="note">${esc(safeNote)}</div><div class="grid"><div class="card"><div class="label">Invoice Period End</div><div class="value">${esc(invoicePeriodDateLabel(toWeek))}</div></div><div class="card"><div class="label">Total Net Amount</div><div class="value">${currency(total)}</div></div><div class="card"><div class="label">Invoice Lines</div><div class="value">${lines.length}</div></div></div><h2>Invoice Summary</h2><table><thead><tr><th>Invoice Period End</th><th>PO</th><th>Code</th><th>Invoice No.</th><th class="num">Invoice Amount (Net)</th><th class="num">From Week</th><th class="num">To Week</th><th class="num">No. of Resource</th><th>Variance Explanation</th></tr></thead><tbody>${summaryRows}</tbody><tfoot><tr class="total"><td>Total</td><td></td><td></td><td></td><td class="num">${currency(total)}</td><td></td><td></td><td></td><td></td></tr></tfoot></table><h2>Supporting Actuals Detail</h2><table><thead>${detailHeader}</thead><tbody>${detailRows}</tbody></table><p class="muted">Draft invoice generated from Financial Tracker actuals. Review against contract terms, approved timesheets and purchase order controls before issuing externally.</p></body></html>`;
 }
 function openPrintWindow(html){
   const w=window.open("","_blank"); if(!w){ alert("Popup blocked. Allow popups to generate the proposed invoice PDF."); return; }
@@ -1766,7 +1884,50 @@ function printForecastStatusCheck(){
     @media print{button{display:none}body{margin:0;font-size:9px}h1{font-size:18px}.meta,.intro,.chunk-head{break-inside:avoid}.status-table{page-break-inside:auto}tr{page-break-inside:avoid}.chunk{break-inside:avoid-page}}
   
 .firebase-status{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}.firebase-status .dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;display:inline-block}.firebase-status.connected .dot{background:#16a34a}.firebase-status.error .dot{background:#dc2626}.firebase-config-area{min-width:360px;min-height:84px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:calc(var(--app-font-size) * .78)!important}.firebase-help{font-size:calc(var(--app-font-size) * .82)!important;color:var(--muted);line-height:1.45}.firebase-panel .controls{align-items:flex-end}.firebase-panel .control.wide-config{min-width:380px;flex:2}.sync-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:#fff;color:var(--brand-dark);font-weight:800}
+
+/* v3.0 multi-project login and role controls */
+.login-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0f2f63,#143c80 55%,#0f766e);display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{width:min(760px,96vw);background:#fff;border-radius:22px;box-shadow:0 28px 70px rgba(0,0,0,.28);overflow:hidden;border:1px solid rgba(255,255,255,.3)}
+.login-hero{padding:24px 28px;background:linear-gradient(135deg,#eef5ff,#fff)}
+.login-hero h1{margin:0;color:var(--brand-dark);font-size:30px!important}
+.login-hero p{margin:8px 0 0;color:var(--muted)}
+.login-body{padding:22px 28px}.login-grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:14px;align-items:end}.login-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.login-error{display:none;margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--red-bg);color:var(--red);border:1px solid #f3b5b9}.login-error.show{display:block}.project-add-panel{display:none;margin-top:14px;padding:14px;border:1px dashed #b9c6d8;border-radius:14px;background:#f8fbff}.project-add-panel.show{display:block}.project-context{font-weight:850;color:#fff}.role-pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);border-radius:999px;padding:8px 10px;font-weight:850}.viewer-banner{display:none;margin:0 auto;max-width:1500px;padding:9px 22px;background:#fff7ed;color:#9a3412;border-bottom:1px solid #fed7aa;font-weight:750}.viewer-mode .viewer-banner{display:block}.viewer-mode .admin-only{display:none!important}.viewer-mode input:not(#fontSizeSlider),.viewer-mode select,.viewer-mode textarea{pointer-events:none;background:#f8fafc!important;color:#64748b!important}.viewer-mode button.action:not(.viewer-allowed),.viewer-mode a.action:not(.viewer-allowed){display:none!important}.viewer-mode .actual-input,.viewer-mode .actual-name-input,.viewer-mode .actual-meta-input{pointer-events:none;background:#f8fafc!important}.login-hidden{display:none!important}
+@media(max-width:720px){.login-grid{grid-template-columns:1fr}.login-hero h1{font-size:24px!important}}
+
 </style></head><body>
+
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-hero">
+      <h1>Financial Tracker</h1>
+      <p>Select a project workspace and access mode. Admin can load/edit data; Viewer can only view the selected project.</p>
+    </div>
+    <div class="login-body">
+      <div class="login-grid">
+        <label class="control"><span>Project</span><select id="loginProjectSelect"></select></label>
+        <label class="control"><span>Access Mode</span><select id="loginRoleSelect"><option value="viewer">Viewer</option><option value="admin">Admin</option></select></label>
+        <label id="loginPasswordWrap" class="control hidden"><span>Admin Password</span><input id="loginPasswordInput" type="password" placeholder="Enter admin password"></label>
+      </div>
+      <div class="login-actions">
+        <button class="action" id="loginEnterBtn" type="button">Open Project</button>
+        <button class="action secondary" id="showAddProjectBtn" type="button">Add Project</button>
+      </div>
+      <div id="loginError" class="login-error"></div>
+      <div id="addProjectPanel" class="project-add-panel">
+        <div class="login-grid">
+          <label class="control"><span>New Project Name</span><input id="newProjectNameInput" type="text" placeholder="e.g. Blackmores"></label>
+          <label class="control"><span>Admin Password</span><input id="newProjectAdminPassword" type="password" placeholder="admin"></label>
+        </div>
+        <div class="login-actions">
+          <button class="action" id="addProjectBtn" type="button">Create Project</button>
+          <button class="action ghost" id="cancelAddProjectBtn" type="button">Cancel</button>
+        </div>
+        <p class="hint">Default admin password is <strong>admin</strong>. Replace this with real authentication before production use.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
     <button onclick="window.print()">Print / Save as PDF</button>
     <h1>Forecast Status Check</h1>
     <div class="muted">Generated ${new Date().toLocaleString("en-AU")} · Source ${esc(source)} · Weeks W1-W${WEEK_COUNT}</div>
@@ -2283,7 +2444,50 @@ function printCustomerReport(){
   const streamRows=Object.entries(getForecastResources().reduce((acc,r)=>{ const key=r.stream||"Unassigned"; acc[key]=acc[key]||{forecast:0,actual:0}; acc[key].forecast+=sumByWeek(r,"forecastByWeek",1,settings.currentWeek); acc[key].actual+=sumByWeek(r,"actualByWeek",1,settings.currentWeek); return acc; },{}));
   const html=`<!doctype html><html><head><title>Financial Tracker Customer Report</title><style>body{font-family:Arial,sans-serif;color:#172033;margin:28px}h1{margin:0 0 4px}.muted{color:#64748b}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.card{border:1px solid #dbe3ef;border-radius:10px;padding:12px}.label{font-size:11px;text-transform:uppercase;color:#64748b;font-weight:700}.value{font-size:22px;font-weight:800;margin-top:8px}table{border-collapse:collapse;width:100%;margin-top:14px}th,td{border:1px solid #dbe3ef;padding:8px;text-align:left}th{background:#f4f7fb}.num{text-align:right}.red{color:#b42318}.amber{color:#b45309}.green{color:#12805c}@media print{button{display:none}}
 .firebase-status{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}.firebase-status .dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;display:inline-block}.firebase-status.connected .dot{background:#16a34a}.firebase-status.error .dot{background:#dc2626}.firebase-config-area{min-width:360px;min-height:84px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:calc(var(--app-font-size) * .78)!important}.firebase-help{font-size:calc(var(--app-font-size) * .82)!important;color:var(--muted);line-height:1.45}.firebase-panel .controls{align-items:flex-end}.firebase-panel .control.wide-config{min-width:380px;flex:2}.sync-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:#fff;color:var(--brand-dark);font-weight:800}
-</style></head><body><button onclick="window.print()">Print / Save as PDF</button><h1>Financial Tracker</h1><div class="muted">Customer summary pack · generated ${new Date().toLocaleString("en-AU")} · current week ${m.currentWeek}</div><div class="grid"><div class="card"><div class="label">% Complete</div><div class="value">${pct(settings.percentComplete,1)}</div></div><div class="card"><div class="label">Forecast Days Total</div><div class="value">${num(m.forecastDaysTotal,1)}</div></div><div class="card"><div class="label">Actual Days to Date</div><div class="value">${num(m.actualDaysToDate,1)}</div></div><div class="card"><div class="label">Days Status</div><div class="value ${ds.level}">${ds.label}</div></div></div><h2>Summary</h2><table><tbody><tr><th>Forecast days to date</th><td class="num">${num(m.forecastDaysToDate,1)}</td></tr><tr><th>Actual days to date</th><td class="num">${num(m.actualDaysToDate,1)}</td></tr><tr><th>Actual vs forecast days variance</th><td class="num">${num(m.actualForecastVariance,1)}</td></tr><tr><th>Commercial status</th><td class="${vs.level}">${vs.label}</td></tr></tbody></table><h2>Stream Summary</h2><table><thead><tr><th>Stream</th><th class="num">Forecast Days to Date</th><th class="num">Actual Days to Date</th><th class="num">Variance</th></tr></thead><tbody>${streamRows.map(([stream,v])=>`<tr><td>${esc(stream)}</td><td class="num">${num(v.forecast,1)}</td><td class="num">${num(v.actual,1)}</td><td class="num">${num(v.actual-v.forecast,1)}</td></tr>`).join("")}</tbody></table><h2>Validation Summary</h2>${issues.length?`<p class="red">${issues.length} validation issue(s) exist. Resolve before formal customer issue.</p>`:`<p class="green">No validation issues found.</p>`}<h2>Change Control</h2><table><thead><tr><th>CR Ref</th><th>Description</th><th>Status</th></tr></thead><tbody>${forecastChangeRequests.length?forecastChangeRequests.map(cr=>`<tr><td>${esc(cr.ref)}</td><td>${esc(cr.description)}</td><td>${esc(cr.status)}</td></tr>`).join(""):`<tr><td colspan="3">No forecast change requests recorded.</td></tr>`}</tbody></table><p class="muted">Customer pack intentionally excludes individual names, day rates and internal cost lines. Use the app internal view for detailed commercial controls.</p></body></html>`;
+
+/* v3.0 multi-project login and role controls */
+.login-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0f2f63,#143c80 55%,#0f766e);display:flex;align-items:center;justify-content:center;padding:24px}
+.login-card{width:min(760px,96vw);background:#fff;border-radius:22px;box-shadow:0 28px 70px rgba(0,0,0,.28);overflow:hidden;border:1px solid rgba(255,255,255,.3)}
+.login-hero{padding:24px 28px;background:linear-gradient(135deg,#eef5ff,#fff)}
+.login-hero h1{margin:0;color:var(--brand-dark);font-size:30px!important}
+.login-hero p{margin:8px 0 0;color:var(--muted)}
+.login-body{padding:22px 28px}.login-grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:14px;align-items:end}.login-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.login-error{display:none;margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--red-bg);color:var(--red);border:1px solid #f3b5b9}.login-error.show{display:block}.project-add-panel{display:none;margin-top:14px;padding:14px;border:1px dashed #b9c6d8;border-radius:14px;background:#f8fbff}.project-add-panel.show{display:block}.project-context{font-weight:850;color:#fff}.role-pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);border-radius:999px;padding:8px 10px;font-weight:850}.viewer-banner{display:none;margin:0 auto;max-width:1500px;padding:9px 22px;background:#fff7ed;color:#9a3412;border-bottom:1px solid #fed7aa;font-weight:750}.viewer-mode .viewer-banner{display:block}.viewer-mode .admin-only{display:none!important}.viewer-mode input:not(#fontSizeSlider),.viewer-mode select,.viewer-mode textarea{pointer-events:none;background:#f8fafc!important;color:#64748b!important}.viewer-mode button.action:not(.viewer-allowed),.viewer-mode a.action:not(.viewer-allowed){display:none!important}.viewer-mode .actual-input,.viewer-mode .actual-name-input,.viewer-mode .actual-meta-input{pointer-events:none;background:#f8fafc!important}.login-hidden{display:none!important}
+@media(max-width:720px){.login-grid{grid-template-columns:1fr}.login-hero h1{font-size:24px!important}}
+
+</style></head><body>
+
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="login-hero">
+      <h1>Financial Tracker</h1>
+      <p>Select a project workspace and access mode. Admin can load/edit data; Viewer can only view the selected project.</p>
+    </div>
+    <div class="login-body">
+      <div class="login-grid">
+        <label class="control"><span>Project</span><select id="loginProjectSelect"></select></label>
+        <label class="control"><span>Access Mode</span><select id="loginRoleSelect"><option value="viewer">Viewer</option><option value="admin">Admin</option></select></label>
+        <label id="loginPasswordWrap" class="control hidden"><span>Admin Password</span><input id="loginPasswordInput" type="password" placeholder="Enter admin password"></label>
+      </div>
+      <div class="login-actions">
+        <button class="action" id="loginEnterBtn" type="button">Open Project</button>
+        <button class="action secondary" id="showAddProjectBtn" type="button">Add Project</button>
+      </div>
+      <div id="loginError" class="login-error"></div>
+      <div id="addProjectPanel" class="project-add-panel">
+        <div class="login-grid">
+          <label class="control"><span>New Project Name</span><input id="newProjectNameInput" type="text" placeholder="e.g. Blackmores"></label>
+          <label class="control"><span>Admin Password</span><input id="newProjectAdminPassword" type="password" placeholder="admin"></label>
+        </div>
+        <div class="login-actions">
+          <button class="action" id="addProjectBtn" type="button">Create Project</button>
+          <button class="action ghost" id="cancelAddProjectBtn" type="button">Cancel</button>
+        </div>
+        <p class="hint">Default admin password is <strong>admin</strong>. Replace this with real authentication before production use.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<button onclick="window.print()">Print / Save as PDF</button><h1>Financial Tracker</h1><div class="muted">Customer summary pack · generated ${new Date().toLocaleString("en-AU")} · current week ${m.currentWeek}</div><div class="grid"><div class="card"><div class="label">% Complete</div><div class="value">${pct(settings.percentComplete,1)}</div></div><div class="card"><div class="label">Forecast Days Total</div><div class="value">${num(m.forecastDaysTotal,1)}</div></div><div class="card"><div class="label">Actual Days to Date</div><div class="value">${num(m.actualDaysToDate,1)}</div></div><div class="card"><div class="label">Days Status</div><div class="value ${ds.level}">${ds.label}</div></div></div><h2>Summary</h2><table><tbody><tr><th>Forecast days to date</th><td class="num">${num(m.forecastDaysToDate,1)}</td></tr><tr><th>Actual days to date</th><td class="num">${num(m.actualDaysToDate,1)}</td></tr><tr><th>Actual vs forecast days variance</th><td class="num">${num(m.actualForecastVariance,1)}</td></tr><tr><th>Commercial status</th><td class="${vs.level}">${vs.label}</td></tr></tbody></table><h2>Stream Summary</h2><table><thead><tr><th>Stream</th><th class="num">Forecast Days to Date</th><th class="num">Actual Days to Date</th><th class="num">Variance</th></tr></thead><tbody>${streamRows.map(([stream,v])=>`<tr><td>${esc(stream)}</td><td class="num">${num(v.forecast,1)}</td><td class="num">${num(v.actual,1)}</td><td class="num">${num(v.actual-v.forecast,1)}</td></tr>`).join("")}</tbody></table><h2>Validation Summary</h2>${issues.length?`<p class="red">${issues.length} validation issue(s) exist. Resolve before formal customer issue.</p>`:`<p class="green">No validation issues found.</p>`}<h2>Change Control</h2><table><thead><tr><th>CR Ref</th><th>Description</th><th>Status</th></tr></thead><tbody>${forecastChangeRequests.length?forecastChangeRequests.map(cr=>`<tr><td>${esc(cr.ref)}</td><td>${esc(cr.description)}</td><td>${esc(cr.status)}</td></tr>`).join(""):`<tr><td colspan="3">No forecast change requests recorded.</td></tr>`}</tbody></table><p class="muted">Customer pack intentionally excludes individual names, day rates and internal cost lines. Use the app internal view for detailed commercial controls.</p></body></html>`;
   const w=window.open("","_blank"); if(!w){ alert("Popup blocked. Allow popups to generate the customer report."); return; }
   w.document.write(html); w.document.close();
 }
@@ -2314,7 +2518,7 @@ function drawBarChart(id,labels,values,options={}){
 function compactCurrency(v){ const abs=Math.abs(v); if(abs>=1000000) return `$${(v/1000000).toFixed(1)}m`; if(abs>=1000) return `$${(v/1000).toFixed(0)}k`; return `$${Math.round(v)}`; }
 function debounce(fn,wait){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args),wait); }; }
 
-document.addEventListener("DOMContentLoaded",async()=>{ initialise(); await loadState(); renderAll(); });
+document.addEventListener("DOMContentLoaded",async()=>{ initialise(); await initialiseFirebaseFromSavedConfig(true); await loadProjectRegistry(); initialiseLogin(); resetInMemoryState(); renderAll(); });
 </script>
 </body>
 </html>

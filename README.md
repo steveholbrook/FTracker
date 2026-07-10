@@ -1,15 +1,26 @@
-# Financial Tracker Cloud Edition
+# Financial Tracker v3.0 Multi-Project
 
-This version keeps the shared database provider hidden from the user interface.
+Static HTML deployment package.
 
-## Deploy on GitHub Pages
+## What changed
+- Login screen with project selection.
+- Admin / Viewer mode.
+- Admin password defaults to `admin`.
+- Admin can add projects from the login screen.
+- Each project stores its own data in the shared cloud database path: `financialTrackerProjects/{projectKey}/state/current`.
+- Viewer mode is read-only.
 
-1. Upload `index.html` to the root of your GitHub repository.
-2. Go to Settings > Pages.
-3. Choose Deploy from a branch.
-4. Select `main` and `/root`.
-5. Save and wait for deployment.
+## Firestore rules for quick testing
 
-## Security
+```js
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /financialTrackerProjects/{projectKey}/state/{documentId} {
+      allow read, write: if true;
+    }
+  }
+}
+```
 
-Configure your cloud database security rules before sharing with users.
+For production, add Firebase Authentication and role-based rules. The default `admin` password is only a prototype control.

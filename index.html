@@ -108,7 +108,7 @@ canvas { font-size: var(--app-font-size) !important; }
 
 .firebase-status{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}.firebase-status .dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;display:inline-block}.firebase-status.connected .dot{background:#16a34a}.firebase-status.error .dot{background:#dc2626}.firebase-config-area{min-width:360px;min-height:84px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:calc(var(--app-font-size) * .78)!important}.firebase-help{font-size:calc(var(--app-font-size) * .82)!important;color:var(--muted);line-height:1.45}.firebase-panel .controls{align-items:flex-end}.firebase-panel .control.wide-config{min-width:380px;flex:2}.sync-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:#fff;color:var(--brand-dark);font-weight:800}
 
-/* v3.0 multi-project login and role controls */
+/* v3.1 multi-project login and role controls */
 .login-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0f2f63,#143c80 55%,#0f766e);display:flex;align-items:center;justify-content:center;padding:24px}
 .login-card{width:min(760px,96vw);background:#fff;border-radius:22px;box-shadow:0 28px 70px rgba(0,0,0,.28);overflow:hidden;border:1px solid rgba(255,255,255,.3)}
 .login-hero{padding:24px 28px;background:linear-gradient(135deg,#eef5ff,#fff)}
@@ -203,22 +203,6 @@ canvas { font-size: var(--app-font-size) !important; }
         <button class="action secondary viewer-allowed" id="customerReportBtn">Customer PDF / Print Pack</button>
         <button class="action danger admin-only" id="resetApplicationBtn">Reset Application</button>
       </div>
-    </div>
-  </div>
-  <div class="panel firebase-panel no-print">
-    <div class="panel-header">
-      <div><h2>Shared Cloud Database</h2><p>This version auto-connects to the shared cloud workspace. Each project uses its own shared cloud data area. Users with the same project selection share the same tracker state.</p></div>
-    </div>
-    <div class="panel-body">
-      <div class="controls">
-        <label class="control"><span>Data Key</span><input id="firebaseProjectKeyInput" type="text" value="gwf" placeholder="project-key"></label>
-        <textarea id="firebaseConfigInput" class="firebase-config-area hidden" aria-hidden="true"></textarea>
-        <button class="action secondary viewer-allowed" id="firebaseConnectBtn" type="button">Reconnect</button>
-        <button class="action secondary viewer-allowed" id="firebaseLoadBtn" type="button">Load Cloud Data</button>
-        <button class="action secondary admin-only" id="firebaseSaveBtn" type="button">Save Cloud Data</button>
-      </div>
-      <div id="firebaseStatus" class="firebase-status"><span class="dot"></span><span>Connecting to shared cloud database automatically…</span></div>
-      <p class="firebase-help">The cloud connection is embedded in this app. The Data Key is controlled by the selected project. Admin users can add projects from the login screen. For production use, restrict access with authenticated-only security rules.</p>
     </div>
   </div>
   <div class="kpi-grid" id="kpiGrid"></div>
@@ -368,7 +352,7 @@ canvas { font-size: var(--app-font-size) !important; }
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
 <script>
 "use strict";
-const APP_VERSION = "3.0.0-multi-project";
+const APP_VERSION = "3.1.0-multi-project";
 const STORAGE_KEY = "financialTracker.blank.v2";
 const FIREBASE_SETTINGS_KEY = STORAGE_KEY + ".firebase";
 const DEFAULT_FIREBASE_PROJECT_KEY = "gwf";
@@ -690,7 +674,7 @@ async function firebaseSavePayload(payload){
   if(!ref) return false;
   try{
     await ref.set({ ...payload, firebaseUpdatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge:false });
-    updateFirebaseStatus(`Cloud save complete for ${firebaseClient.projectKey} at ${new Date().toLocaleTimeString("en-AU")}.`,"connected");
+    updateFirebaseStatus(`Project workspace save complete at ${new Date().toLocaleTimeString("en-AU")}.`,"connected");
     return true;
   }catch(e){
     console.error("Cloud save failed", e);
@@ -703,10 +687,10 @@ async function firebaseLoadSavedState(){
   if(!ref) return null;
   try{
     const snap=await ref.get();
-    if(!snap.exists){ updateFirebaseStatus(`Connected, but no cloud data exists yet for data key ${firebaseClient.projectKey}.`,"connected"); return null; }
+    if(!snap.exists){ updateFirebaseStatus(`Connected, but no shared project data exists yet for this project workspace.`,"connected"); return null; }
     const data=snap.data();
     delete data.firebaseUpdatedAt;
-    updateFirebaseStatus(`Cloud data loaded for ${firebaseClient.projectKey}.`,"connected");
+    updateFirebaseStatus(`Shared project data loaded.`,"connected");
     return data;
   }catch(e){
     console.error("Cloud load failed", e);
@@ -1035,7 +1019,7 @@ function initialise(){
   initialiseFirebaseFromSavedConfig(true);
   document.getElementById("firebaseConnectBtn")?.addEventListener("click", async()=>{ try{ await initialiseFirebaseFromInputs(); }catch(e){} });
   document.getElementById("firebaseLoadBtn")?.addEventListener("click", async()=>{ await initialiseFirebaseFromInputs().catch(()=>false); await loadState(); dirty=false; renderAll(); });
-  document.getElementById("firebaseSaveBtn")?.addEventListener("click", async()=>{ await initialiseFirebaseFromInputs().catch(()=>false); addAudit("Manual cloud save", `Data key ${firebaseClient.projectKey}`); saveState(); renderAll(); });
+  document.getElementById("firebaseSaveBtn")?.addEventListener("click", async()=>{ await initialiseFirebaseFromInputs().catch(()=>false); addAudit("Manual cloud save", `Project ${activeProject.name || activeProjectKey()}`); saveState(); renderAll(); });
   document.getElementById("saveDashboardBtn").addEventListener("click",()=>{ addAudit("Dashboard inputs saved", `Start Date ${settings.startDate}, derived W${settings.currentWeek}, ${pct(settings.percentComplete,1)} complete`); saveState(); renderAll(); });
   document.getElementById("customerReportBtn").addEventListener("click",printCustomerReport);
   document.getElementById("printAllInvoicesBtn")?.addEventListener("click",()=>printAllProposedInvoices());
@@ -1659,62 +1643,22 @@ function customerDetailRows(lines){
   const rows=aggregateInvoiceDetailForCustomer(lines);
   return rows.map(d=>`<tr><td>${esc(d.invoiceNo)}</td><td>${esc(d.code)}</td><td>${esc(d.stream)}</td><td>${esc(d.role)}</td><td class="num">${num(d.days,1)}</td><td class="num">${currency(d.amount)}</td></tr>`).join("") || '<tr><td colspan="6">No actuals recorded for this invoice period/code.</td></tr>';
 }
+function printableBaseCss(){
+  return `body{font-family:Arial,sans-serif;color:#172033;margin:28px;line-height:1.35}h1{margin:0 0 4px;font-size:24px}h2{margin:22px 0 8px;font-size:16px}.muted{color:#64748b}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}.card{border:1px solid #dbe3ef;border-radius:10px;padding:12px;background:#fff}.label{font-size:11px;text-transform:uppercase;color:#64748b;font-weight:700}.value{font-size:22px;font-weight:800;margin-top:8px}table{border-collapse:collapse;width:100%;margin-top:14px;font-size:12px}th,td{border:1px solid #dbe3ef;padding:7px;text-align:left;vertical-align:top}th{background:#f4f7fb}.num{text-align:right}.total{font-weight:800;background:#f8fafc}.note{border-left:4px solid #1d4ed8;background:#f8fbff;padding:10px 12px;margin-top:16px}.red{color:#b42318}.amber{color:#b45309}.green{color:#12805c}@page{size:A4 landscape;margin:12mm}@media print{button{display:none}}`;
+}
 function proposedInvoiceHtml(line, allLines=false, mode=settings.invoiceExportMode||"customer", period=null){
   const title=period?.type==="creditNote"?"Credit Note":(allLines?"Proposed Invoice Summary":"Proposed Invoice");
   const lines=Array.isArray(line)?line:[line];
-  const fromWeek=period?.fromWeek ?? (lines[0]?.fromWeek ?? invoicePeriodStartWeek());
-  const toWeek=period?.toWeek ?? (lines[0]?.toWeek ?? invoicePeriodEndWeek());
+  const fromWeek=period?.fromWeek ?? (lines[0]?.fromWeek ?? invoicePeriodStartWeek(lines[0]?.code));
+  const toWeek=period?.toWeek ?? (lines[0]?.toWeek ?? invoicePeriodEndWeek(lines[0]?.code));
   const summaryRows=lines.map(r=>`<tr><td>${esc(r.periodEnd||invoicePeriodDateLabel(toWeek))}</td><td>${esc(r.po||"—")}</td><td>${esc(r.code)}</td><td>${esc(r.invoiceNo)}</td><td class="num">${currency(r.amount)}</td><td class="num">${r.fromWeek}</td><td class="num">${r.toWeek}</td><td class="num">${r.resourceCount}</td><td>${esc(r.varianceNote||"")}</td></tr>`).join("");
   const detailRows=mode==="internal"?internalDetailRows(lines):customerDetailRows(lines);
-  const total=lines.reduce((s,r)=>s+r.amount,0);
+  const total=lines.reduce((s,r)=>s+Number(r.amount||0),0);
   const detailHeader=mode==="internal"?`<tr><th>Invoice No.</th><th>Stream</th><th>Role</th><th>Name</th><th class="num">Actual Days</th><th class="num">Day Rate</th><th class="num">Amount</th></tr>`:`<tr><th>Invoice No.</th><th>Code</th><th>Stream</th><th>Role</th><th class="num">Actual Days</th><th class="num">Amount</th></tr>`;
   const safeNote=mode==="internal"?"Internal detail mode includes individual names and rates. Do not issue externally without commercial approval.":"Customer-safe mode aggregates detail by stream / role / code and excludes individual names and day rates.";
-  return `<!doctype html><html><head><title>${title}</title><style>body{font-family:Arial,sans-serif;color:#172033;margin:28px}h1{margin:0 0 4px}.muted{color:#64748b}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}.card{border:1px solid #dbe3ef;border-radius:10px;padding:12px}.label{font-size:11px;text-transform:uppercase;color:#64748b;font-weight:700}.value{font-size:22px;font-weight:800;margin-top:8px}table{border-collapse:collapse;width:100%;margin-top:14px}th,td{border:1px solid #dbe3ef;padding:8px;text-align:left;vertical-align:top}th{background:#f4f7fb}.num{text-align:right}.total{font-weight:800;background:#f8fafc}.note{border-left:4px solid #1d4ed8;background:#f8fbff;padding:10px 12px;margin-top:16px}@media print{button{display:none}}
-.firebase-status{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}.firebase-status .dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;display:inline-block}.firebase-status.connected .dot{background:#16a34a}.firebase-status.error .dot{background:#dc2626}.firebase-config-area{min-width:360px;min-height:84px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:calc(var(--app-font-size) * .78)!important}.firebase-help{font-size:calc(var(--app-font-size) * .82)!important;color:var(--muted);line-height:1.45}.firebase-panel .controls{align-items:flex-end}.firebase-panel .control.wide-config{min-width:380px;flex:2}.sync-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:#fff;color:var(--brand-dark);font-weight:800}
-
-/* v3.0 multi-project login and role controls */
-.login-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0f2f63,#143c80 55%,#0f766e);display:flex;align-items:center;justify-content:center;padding:24px}
-.login-card{width:min(760px,96vw);background:#fff;border-radius:22px;box-shadow:0 28px 70px rgba(0,0,0,.28);overflow:hidden;border:1px solid rgba(255,255,255,.3)}
-.login-hero{padding:24px 28px;background:linear-gradient(135deg,#eef5ff,#fff)}
-.login-hero h1{margin:0;color:var(--brand-dark);font-size:30px!important}
-.login-hero p{margin:8px 0 0;color:var(--muted)}
-.login-body{padding:22px 28px}.login-grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:14px;align-items:end}.login-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.login-error{display:none;margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--red-bg);color:var(--red);border:1px solid #f3b5b9}.login-error.show{display:block}.project-add-panel{display:none;margin-top:14px;padding:14px;border:1px dashed #b9c6d8;border-radius:14px;background:#f8fbff}.project-add-panel.show{display:block}.project-context{font-weight:850;color:#fff}.role-pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);border-radius:999px;padding:8px 10px;font-weight:850}.viewer-banner{display:none;margin:0 auto;max-width:1500px;padding:9px 22px;background:#fff7ed;color:#9a3412;border-bottom:1px solid #fed7aa;font-weight:750}.viewer-mode .viewer-banner{display:block}.viewer-mode .admin-only{display:none!important}.viewer-mode input:not(#fontSizeSlider),.viewer-mode select,.viewer-mode textarea{pointer-events:none;background:#f8fafc!important;color:#64748b!important}.viewer-mode button.action:not(.viewer-allowed),.viewer-mode a.action:not(.viewer-allowed){display:none!important}.viewer-mode .actual-input,.viewer-mode .actual-name-input,.viewer-mode .actual-meta-input{pointer-events:none;background:#f8fafc!important}.login-hidden{display:none!important}
-@media(max-width:720px){.login-grid{grid-template-columns:1fr}.login-hero h1{font-size:24px!important}}
-
-</style></head><body>
-
-<div id="loginScreen" class="login-screen">
-  <div class="login-card">
-    <div class="login-hero">
-      <h1>Financial Tracker</h1>
-      <p>Select a project workspace and access mode. Admin can load/edit data; Viewer can only view the selected project.</p>
-    </div>
-    <div class="login-body">
-      <div class="login-grid">
-        <label class="control"><span>Project</span><select id="loginProjectSelect"></select></label>
-        <label class="control"><span>Access Mode</span><select id="loginRoleSelect"><option value="viewer">Viewer</option><option value="admin">Admin</option></select></label>
-        <label id="loginPasswordWrap" class="control hidden"><span>Admin Password</span><input id="loginPasswordInput" type="password" placeholder="Enter admin password"></label>
-      </div>
-      <div class="login-actions">
-        <button class="action" id="loginEnterBtn" type="button">Open Project</button>
-        <button class="action secondary" id="showAddProjectBtn" type="button">Add Project</button>
-      </div>
-      <div id="loginError" class="login-error"></div>
-      <div id="addProjectPanel" class="project-add-panel">
-        <div class="login-grid">
-          <label class="control"><span>New Project Name</span><input id="newProjectNameInput" type="text" placeholder="e.g. Blackmores"></label>
-          <label class="control"><span>Admin Password</span><input id="newProjectAdminPassword" type="password" placeholder="admin"></label>
-        </div>
-        <div class="login-actions">
-          <button class="action" id="addProjectBtn" type="button">Create Project</button>
-          <button class="action ghost" id="cancelAddProjectBtn" type="button">Cancel</button>
-        </div>
-        <p class="hint">Default admin password is <strong>admin</strong>. Replace this with real authentication before production use.</p>
-      </div>
-    </div>
-  </div>
-</div>
-<button onclick="window.print()">Print / Save as PDF</button><h1>${title}${period?` · ${esc(period.invoiceLabel)}`:""}</h1><div class="muted">Generated ${new Date().toLocaleString("en-AU")} · Period W${fromWeek}–W${toWeek}${period?` · Status: ${esc(period.status)}`:""}</div><div class="note">${esc(safeNote)}</div><div class="grid"><div class="card"><div class="label">Invoice Period End</div><div class="value">${esc(invoicePeriodDateLabel(toWeek))}</div></div><div class="card"><div class="label">Total Net Amount</div><div class="value">${currency(total)}</div></div><div class="card"><div class="label">Invoice Lines</div><div class="value">${lines.length}</div></div></div><h2>Invoice Summary</h2><table><thead><tr><th>Invoice Period End</th><th>PO</th><th>Code</th><th>Invoice No.</th><th class="num">Invoice Amount (Net)</th><th class="num">From Week</th><th class="num">To Week</th><th class="num">No. of Resource</th><th>Variance Explanation</th></tr></thead><tbody>${summaryRows}</tbody><tfoot><tr class="total"><td>Total</td><td></td><td></td><td></td><td class="num">${currency(total)}</td><td></td><td></td><td></td><td></td></tr></tfoot></table><h2>Supporting Actuals Detail</h2><table><thead>${detailHeader}</thead><tbody>${detailRows}</tbody></table><p class="muted">Draft invoice generated from Financial Tracker actuals. Review against contract terms, approved timesheets and purchase order controls before issuing externally.</p></body></html>`;
+  const projectLabel=activeProject?.name ? ` · Project: ${esc(activeProject.name)}` : "";
+  const roleLabel=activeProject?.role ? ` · Generated by ${esc(activeProject.role.charAt(0).toUpperCase()+activeProject.role.slice(1))}` : "";
+  return `<!doctype html><html><head><title>${esc(title)}</title><style>${printableBaseCss()}</style></head><body><button onclick="window.print()">Print / Save as PDF</button><h1>${esc(title)}${period?` · ${esc(period.invoiceLabel)}`:""}</h1><div class="muted">Generated ${new Date().toLocaleString("en-AU")} · Period W${fromWeek}–W${toWeek}${projectLabel}${roleLabel}${period?` · Status: ${esc(period.status)}`:""}</div><div class="note">${esc(safeNote)}</div><div class="grid"><div class="card"><div class="label">Invoice Period End</div><div class="value">${esc(invoicePeriodDateLabel(toWeek))}</div></div><div class="card"><div class="label">Total Net Amount</div><div class="value">${currency(total)}</div></div><div class="card"><div class="label">Invoice Lines</div><div class="value">${lines.length}</div></div></div><h2>Invoice Summary</h2><table><thead><tr><th>Invoice Period End</th><th>PO</th><th>Code</th><th>Invoice No.</th><th class="num">Invoice Amount (Net)</th><th class="num">From Week</th><th class="num">To Week</th><th class="num">No. of Resource</th><th>Variance Explanation</th></tr></thead><tbody>${summaryRows}</tbody><tfoot><tr class="total"><td>Total</td><td></td><td></td><td></td><td class="num">${currency(total)}</td><td></td><td></td><td></td><td></td></tr></tfoot></table><h2>Supporting Actuals Detail</h2><table><thead>${detailHeader}</thead><tbody>${detailRows}</tbody></table><p class="muted">Draft invoice generated from Financial Tracker actuals. Review against contract terms, approved timesheets and purchase order controls before issuing externally.</p></body></html>`;
 }
 function openPrintWindow(html){
   const w=window.open("","_blank"); if(!w){ alert("Popup blocked. Allow popups to generate the proposed invoice PDF."); return; }
@@ -1885,7 +1829,7 @@ function printForecastStatusCheck(){
   
 .firebase-status{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}.firebase-status .dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;display:inline-block}.firebase-status.connected .dot{background:#16a34a}.firebase-status.error .dot{background:#dc2626}.firebase-config-area{min-width:360px;min-height:84px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:calc(var(--app-font-size) * .78)!important}.firebase-help{font-size:calc(var(--app-font-size) * .82)!important;color:var(--muted);line-height:1.45}.firebase-panel .controls{align-items:flex-end}.firebase-panel .control.wide-config{min-width:380px;flex:2}.sync-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:#fff;color:var(--brand-dark);font-weight:800}
 
-/* v3.0 multi-project login and role controls */
+/* v3.1 multi-project login and role controls */
 .login-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0f2f63,#143c80 55%,#0f766e);display:flex;align-items:center;justify-content:center;padding:24px}
 .login-card{width:min(760px,96vw);background:#fff;border-radius:22px;box-shadow:0 28px 70px rgba(0,0,0,.28);overflow:hidden;border:1px solid rgba(255,255,255,.3)}
 .login-hero{padding:24px 28px;background:linear-gradient(135deg,#eef5ff,#fff)}
@@ -2442,52 +2386,7 @@ function parseDateCell(v){
 function printCustomerReport(){
   const m=metrics(), ds=statusDays(m.actualDaysToDate,m.forecastDaysToDate), vs=statusVAC(m.vac,m.bac), issues=getValidationIssues();
   const streamRows=Object.entries(getForecastResources().reduce((acc,r)=>{ const key=r.stream||"Unassigned"; acc[key]=acc[key]||{forecast:0,actual:0}; acc[key].forecast+=sumByWeek(r,"forecastByWeek",1,settings.currentWeek); acc[key].actual+=sumByWeek(r,"actualByWeek",1,settings.currentWeek); return acc; },{}));
-  const html=`<!doctype html><html><head><title>Financial Tracker Customer Report</title><style>body{font-family:Arial,sans-serif;color:#172033;margin:28px}h1{margin:0 0 4px}.muted{color:#64748b}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}.card{border:1px solid #dbe3ef;border-radius:10px;padding:12px}.label{font-size:11px;text-transform:uppercase;color:#64748b;font-weight:700}.value{font-size:22px;font-weight:800;margin-top:8px}table{border-collapse:collapse;width:100%;margin-top:14px}th,td{border:1px solid #dbe3ef;padding:8px;text-align:left}th{background:#f4f7fb}.num{text-align:right}.red{color:#b42318}.amber{color:#b45309}.green{color:#12805c}@media print{button{display:none}}
-.firebase-status{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:10px}.firebase-status .dot{width:10px;height:10px;border-radius:50%;background:#cbd5e1;display:inline-block}.firebase-status.connected .dot{background:#16a34a}.firebase-status.error .dot{background:#dc2626}.firebase-config-area{min-width:360px;min-height:84px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:calc(var(--app-font-size) * .78)!important}.firebase-help{font-size:calc(var(--app-font-size) * .82)!important;color:var(--muted);line-height:1.45}.firebase-panel .controls{align-items:flex-end}.firebase-panel .control.wide-config{min-width:380px;flex:2}.sync-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:8px 12px;background:#fff;color:var(--brand-dark);font-weight:800}
-
-/* v3.0 multi-project login and role controls */
-.login-screen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#0f2f63,#143c80 55%,#0f766e);display:flex;align-items:center;justify-content:center;padding:24px}
-.login-card{width:min(760px,96vw);background:#fff;border-radius:22px;box-shadow:0 28px 70px rgba(0,0,0,.28);overflow:hidden;border:1px solid rgba(255,255,255,.3)}
-.login-hero{padding:24px 28px;background:linear-gradient(135deg,#eef5ff,#fff)}
-.login-hero h1{margin:0;color:var(--brand-dark);font-size:30px!important}
-.login-hero p{margin:8px 0 0;color:var(--muted)}
-.login-body{padding:22px 28px}.login-grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:14px;align-items:end}.login-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:18px}.login-error{display:none;margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--red-bg);color:var(--red);border:1px solid #f3b5b9}.login-error.show{display:block}.project-add-panel{display:none;margin-top:14px;padding:14px;border:1px dashed #b9c6d8;border-radius:14px;background:#f8fbff}.project-add-panel.show{display:block}.project-context{font-weight:850;color:#fff}.role-pill{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.24);border-radius:999px;padding:8px 10px;font-weight:850}.viewer-banner{display:none;margin:0 auto;max-width:1500px;padding:9px 22px;background:#fff7ed;color:#9a3412;border-bottom:1px solid #fed7aa;font-weight:750}.viewer-mode .viewer-banner{display:block}.viewer-mode .admin-only{display:none!important}.viewer-mode input:not(#fontSizeSlider),.viewer-mode select,.viewer-mode textarea{pointer-events:none;background:#f8fafc!important;color:#64748b!important}.viewer-mode button.action:not(.viewer-allowed),.viewer-mode a.action:not(.viewer-allowed){display:none!important}.viewer-mode .actual-input,.viewer-mode .actual-name-input,.viewer-mode .actual-meta-input{pointer-events:none;background:#f8fafc!important}.login-hidden{display:none!important}
-@media(max-width:720px){.login-grid{grid-template-columns:1fr}.login-hero h1{font-size:24px!important}}
-
-</style></head><body>
-
-<div id="loginScreen" class="login-screen">
-  <div class="login-card">
-    <div class="login-hero">
-      <h1>Financial Tracker</h1>
-      <p>Select a project workspace and access mode. Admin can load/edit data; Viewer can only view the selected project.</p>
-    </div>
-    <div class="login-body">
-      <div class="login-grid">
-        <label class="control"><span>Project</span><select id="loginProjectSelect"></select></label>
-        <label class="control"><span>Access Mode</span><select id="loginRoleSelect"><option value="viewer">Viewer</option><option value="admin">Admin</option></select></label>
-        <label id="loginPasswordWrap" class="control hidden"><span>Admin Password</span><input id="loginPasswordInput" type="password" placeholder="Enter admin password"></label>
-      </div>
-      <div class="login-actions">
-        <button class="action" id="loginEnterBtn" type="button">Open Project</button>
-        <button class="action secondary" id="showAddProjectBtn" type="button">Add Project</button>
-      </div>
-      <div id="loginError" class="login-error"></div>
-      <div id="addProjectPanel" class="project-add-panel">
-        <div class="login-grid">
-          <label class="control"><span>New Project Name</span><input id="newProjectNameInput" type="text" placeholder="e.g. Blackmores"></label>
-          <label class="control"><span>Admin Password</span><input id="newProjectAdminPassword" type="password" placeholder="admin"></label>
-        </div>
-        <div class="login-actions">
-          <button class="action" id="addProjectBtn" type="button">Create Project</button>
-          <button class="action ghost" id="cancelAddProjectBtn" type="button">Cancel</button>
-        </div>
-        <p class="hint">Default admin password is <strong>admin</strong>. Replace this with real authentication before production use.</p>
-      </div>
-    </div>
-  </div>
-</div>
-<button onclick="window.print()">Print / Save as PDF</button><h1>Financial Tracker</h1><div class="muted">Customer summary pack · generated ${new Date().toLocaleString("en-AU")} · current week ${m.currentWeek}</div><div class="grid"><div class="card"><div class="label">% Complete</div><div class="value">${pct(settings.percentComplete,1)}</div></div><div class="card"><div class="label">Forecast Days Total</div><div class="value">${num(m.forecastDaysTotal,1)}</div></div><div class="card"><div class="label">Actual Days to Date</div><div class="value">${num(m.actualDaysToDate,1)}</div></div><div class="card"><div class="label">Days Status</div><div class="value ${ds.level}">${ds.label}</div></div></div><h2>Summary</h2><table><tbody><tr><th>Forecast days to date</th><td class="num">${num(m.forecastDaysToDate,1)}</td></tr><tr><th>Actual days to date</th><td class="num">${num(m.actualDaysToDate,1)}</td></tr><tr><th>Actual vs forecast days variance</th><td class="num">${num(m.actualForecastVariance,1)}</td></tr><tr><th>Commercial status</th><td class="${vs.level}">${vs.label}</td></tr></tbody></table><h2>Stream Summary</h2><table><thead><tr><th>Stream</th><th class="num">Forecast Days to Date</th><th class="num">Actual Days to Date</th><th class="num">Variance</th></tr></thead><tbody>${streamRows.map(([stream,v])=>`<tr><td>${esc(stream)}</td><td class="num">${num(v.forecast,1)}</td><td class="num">${num(v.actual,1)}</td><td class="num">${num(v.actual-v.forecast,1)}</td></tr>`).join("")}</tbody></table><h2>Validation Summary</h2>${issues.length?`<p class="red">${issues.length} validation issue(s) exist. Resolve before formal customer issue.</p>`:`<p class="green">No validation issues found.</p>`}<h2>Change Control</h2><table><thead><tr><th>CR Ref</th><th>Description</th><th>Status</th></tr></thead><tbody>${forecastChangeRequests.length?forecastChangeRequests.map(cr=>`<tr><td>${esc(cr.ref)}</td><td>${esc(cr.description)}</td><td>${esc(cr.status)}</td></tr>`).join(""):`<tr><td colspan="3">No forecast change requests recorded.</td></tr>`}</tbody></table><p class="muted">Customer pack intentionally excludes individual names, day rates and internal cost lines. Use the app internal view for detailed commercial controls.</p></body></html>`;
+  const html=`<!doctype html><html><head><title>Financial Tracker Customer Report</title><style>${printableBaseCss().replace('@page{size:A4 landscape;margin:12mm}','@page{size:A4 portrait;margin:14mm}').replace('grid-template-columns:repeat(3,1fr)','grid-template-columns:repeat(4,1fr)')}</style></head><body><button onclick="window.print()">Print / Save as PDF</button><h1>Financial Tracker</h1><div class="muted">Customer summary pack · Project: ${esc(activeProject.name||'')} · generated ${new Date().toLocaleString("en-AU")} · current week ${m.currentWeek}</div><div class="grid"><div class="card"><div class="label">% Complete</div><div class="value">${pct(settings.percentComplete,1)}</div></div><div class="card"><div class="label">Forecast Days Total</div><div class="value">${num(m.forecastDaysTotal,1)}</div></div><div class="card"><div class="label">Actual Days to Date</div><div class="value">${num(m.actualDaysToDate,1)}</div></div><div class="card"><div class="label">Days Status</div><div class="value ${ds.level}">${ds.label}</div></div></div><h2>Summary</h2><table><tbody><tr><th>Forecast days to date</th><td class="num">${num(m.forecastDaysToDate,1)}</td></tr><tr><th>Actual days to date</th><td class="num">${num(m.actualDaysToDate,1)}</td></tr><tr><th>Actual vs forecast days variance</th><td class="num">${num(m.actualForecastVariance,1)}</td></tr><tr><th>Commercial status</th><td class="${vs.level}">${vs.label}</td></tr></tbody></table><h2>Stream Summary</h2><table><thead><tr><th>Stream</th><th class="num">Forecast Days to Date</th><th class="num">Actual Days to Date</th><th class="num">Variance</th></tr></thead><tbody>${streamRows.map(([stream,v])=>`<tr><td>${esc(stream)}</td><td class="num">${num(v.forecast,1)}</td><td class="num">${num(v.actual,1)}</td><td class="num">${num(v.actual-v.forecast,1)}</td></tr>`).join("")}</tbody></table><h2>Validation Summary</h2>${issues.length?`<p class="red">${issues.length} validation issue(s) exist. Resolve before formal customer issue.</p>`:`<p class="green">No validation issues found.</p>`}<h2>Change Control</h2><table><thead><tr><th>CR Ref</th><th>Description</th><th>Status</th></tr></thead><tbody>${forecastChangeRequests.length?forecastChangeRequests.map(cr=>`<tr><td>${esc(cr.ref)}</td><td>${esc(cr.description)}</td><td>${esc(cr.status)}</td></tr>`).join(""):`<tr><td colspan="3">No forecast change requests recorded.</td></tr>`}</tbody></table><p class="muted">Customer pack intentionally excludes individual names, day rates and internal cost lines. Use the app internal view for detailed commercial controls.</p></body></html>`;
   const w=window.open("","_blank"); if(!w){ alert("Popup blocked. Allow popups to generate the customer report."); return; }
   w.document.write(html); w.document.close();
 }

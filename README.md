@@ -1,16 +1,33 @@
-# Financial Tracker v3.0 Multi-Project
+# Financial Tracker v3.1 Multi-Project
 
-Static HTML deployment package.
+This version updates the v3.0 multi-project app for the FTracker repository.
 
-## What changed
-- Login screen with project selection.
-- Admin / Viewer mode.
-- Admin password defaults to `admin`.
-- Admin can add projects from the login screen.
-- Each project stores its own data in the shared cloud database path: `financialTrackerProjects/{projectKey}/state/current`.
-- Viewer mode is read-only.
+## Changes in v3.1
 
-## Firestore rules for quick testing
+- Removed the visible Shared Cloud Database panel from the Dashboard.
+- The selected project is now the cloud workspace key automatically.
+- When the user selects GWF, Blackmores, or an added project, the app loads/saves that project's cloud state automatically.
+- Invoice Print Draft Preview now uses the logged-in project context and role and no longer injects or displays the login screen in the print/PDF window.
+- Customer report print output was also cleaned so it does not include login-screen markup.
+
+## Firestore path
+
+Each project saves to:
+
+```text
+financialTrackerProjects/{projectKey}/state/current
+```
+
+Examples:
+
+```text
+financialTrackerProjects/gwf/state/current
+financialTrackerProjects/blackmores/state/current
+```
+
+## Firestore test rules
+
+For testing only:
 
 ```js
 rules_version = '2';
@@ -23,4 +40,8 @@ service cloud.firestore {
 }
 ```
 
-For production, add Firebase Authentication and role-based rules. The default `admin` password is only a prototype control.
+Replace with authenticated rules before production/customer use.
+
+## GitHub Pages deployment
+
+Put `index.html` at the root of the FTracker repository, then set GitHub Pages to deploy from `main` branch `/root`.

@@ -352,7 +352,7 @@ canvas { font-size: var(--app-font-size) !important; }
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
 <script>
 "use strict";
-const APP_VERSION = "3.2.0-multi-project";
+const APP_VERSION = "3.3.0-multi-project";
 const STORAGE_KEY = "financialTracker.blank.v2";
 const FIREBASE_SETTINGS_KEY = STORAGE_KEY + ".firebase";
 const DEFAULT_FIREBASE_PROJECT_KEY = "gwf";
@@ -397,15 +397,106 @@ function isAdminMode(){ return activeProject.role === "admin"; }
 function isViewerMode(){ return activeProject.role === "viewer"; }
 function showLoginError(msg){ const el=document.getElementById("loginError"); if(el){ el.textContent=msg; el.classList.add("show"); } }
 function clearLoginError(){ const el=document.getElementById("loginError"); if(el){ el.textContent=""; el.classList.remove("show"); } }
-function renderProjectDropdown(){ const sel=document.getElementById("loginProjectSelect"); if(!sel) return; sel.innerHTML=projectRegistry.map(p=>`<option value="${esc(p.key)}">${esc(p.name)}</option>`).join(""); }
+function normaliseProjectRegistry(candidateProjects){
+  const defaults = clone(DEFAULT_PROJECTS);
+  const incoming = Array.isArray(candidateProjects) ? candidateProjects : [];
+  const merged = [...defaults, ...incoming]
+    .filter(p => p && String(p.name||"").trim() && String(p.key||"").trim())
+    .map(p => ({ name:String(p.name).trim(), key:String(p.key).trim() }));
+  const seen = new Set();
+  const unique = [];
+  merged.forEach(p => {
+    const key = slugifyProjectName(p.key || p.name);
+    if(!seen.has(key)){
+      seen.add(key);
+      unique.push({ name:p.name, key });
+    }
+  });
+  return unique.length ? unique : defaults;
+}
+function renderProjectDropdown(){
+  projectRegistry = normaliseProjectRegistry(projectRegistry);
+  const sel=document.getElementById("loginProjectSelect");
+  if(!sel) return;
+  const current=sel.value;
+  sel.innerHTML=projectRegistry.map(p=>`<option value="${esc(p.key)}">${esc(p.name)}</option>`).join("");
+  if(projectRegistry.some(p=>p.key===current)) sel.value=current;
+  else sel.value=projectRegistry[0]?.key || DEFAULT_FIREBASE_PROJECT_KEY;
+}
 function setRoleMode(role){ activeProject.role=role; document.body.classList.toggle("viewer-mode", role==="viewer"); document.body.classList.toggle("admin-mode", role==="admin"); const label=document.getElementById("activeRoleLabel"); if(label) label.textContent=role?role.charAt(0).toUpperCase()+role.slice(1):"—"; }
 function updateProjectHeader(){ const el=document.getElementById("activeProjectName"); if(el) el.textContent=activeProject.name || "Not selected"; const keyInput=document.getElementById("firebaseProjectKeyInput"); if(keyInput) keyInput.value=activeProjectKey(); }
 async function registryDocRef(){ if(!firebaseClient.connected || !firebaseClient.db) return null; return firebaseClient.db.collection("financialTrackerProjects").doc("__registry__").collection("state").doc("projects"); }
-async function loadProjectRegistry(){ try{ await initialiseFirebaseFromSavedConfig(false); const ref=await registryDocRef(); if(!ref) return; const snap=await ref.get(); if(snap.exists && Array.isArray(snap.data().projects) && snap.data().projects.length){ projectRegistry=snap.data().projects.filter(p=>p&&p.name&&p.key); } }catch(e){ console.warn("Project registry load failed", e.message); } finally { renderProjectDropdown(); } }
-async function saveProjectRegistry(){ try{ await initialiseFirebaseFromSavedConfig(false); const ref=await registryDocRef(); if(ref) await ref.set({projects:projectRegistry, updatedAt: firebase.firestore.FieldValue.serverTimestamp()},{merge:false}); }catch(e){ console.warn("Project registry save failed", e.message); } }
+async function loadProjectRegistry(){
+  projectRegistry = normaliseProjectRegistry(projectRegistry);
+  try{
+    await initialiseFirebaseFromSavedConfig(false);
+    const ref=await registryDocRef();
+    if(ref){
+      const snap=await ref.get();
+      if(snap.exists){
+        projectRegistry = normaliseProjectRegistry(snap.data().projects);
+      }
+    }
+  }catch(e){
+    console.warn("Project registry load failed", e.message);
+    projectRegistry = normaliseProjectRegistry(projectRegistry);
+  } finally {
+    renderProjectDropdown();
+  }
+}
+async function saveProjectRegistry(){ try{ projectRegistry=normaliseProjectRegistry(projectRegistry); await initialiseFirebaseFromSavedConfig(false); const ref=await registryDocRef(); if(ref) await ref.set({projects:projectRegistry, updatedAt: firebase.firestore.FieldValue.serverTimestamp()},{merge:false}); }catch(e){ console.warn("Project registry save failed", e.message); } }
 function resetInMemoryState(){ forecastBaseline=[]; resources=[]; baselineMeta={ source:"No forecast loaded", loadedAt:"", fileName:"No forecast loaded", weekCount:0, dataWeekCount:0 }; forecastChangeRequests=[]; invoicePeriods=[]; invoiceCodeConfigs={}; changeLog=[]; lastFiReconciliation=null; setWeekHorizon(50,{allowBelowData:true,reason:"Project switch"}); settings={currentWeek:1,startDate:"",percentComplete:0,lastSaved:null,actualsInterval:"week",fontSize:14,numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer"}; dirty=false; }
-async function openSelectedProject(){ clearLoginError(); const projectKey=document.getElementById("loginProjectSelect")?.value || DEFAULT_FIREBASE_PROJECT_KEY; const role=document.getElementById("loginRoleSelect")?.value || "viewer"; const project=projectRegistry.find(p=>p.key===projectKey) || projectRegistry[0]; if(role==="admin" && (document.getElementById("loginPasswordInput")?.value || "") !== ADMIN_PASSWORD){ showLoginError("Admin password is incorrect. Default password is admin."); return; } activeProject={name:project.name,key:project.key,role}; firebaseClient.projectKey=project.key; saveFirebaseSettings({config:DEFAULT_FIREBASE_CONFIG, projectKey:project.key}); updateProjectHeader(); setRoleMode(role); resetInMemoryState(); document.getElementById("loginScreen")?.classList.add("login-hidden"); populateFirebaseInputs(); await initialiseFirebaseFromInputs().catch(()=>false); await loadState(); dirty=false; renderAll(); }
-function initialiseLogin(){ renderProjectDropdown(); const role=document.getElementById("loginRoleSelect"); role?.addEventListener("change",()=>{ document.getElementById("loginPasswordWrap")?.classList.toggle("hidden", role.value!=="admin"); }); document.getElementById("loginEnterBtn")?.addEventListener("click",openSelectedProject); document.getElementById("showAddProjectBtn")?.addEventListener("click",()=>{ document.getElementById("addProjectPanel")?.classList.add("show"); }); document.getElementById("cancelAddProjectBtn")?.addEventListener("click",()=>{ document.getElementById("addProjectPanel")?.classList.remove("show"); }); document.getElementById("addProjectBtn")?.addEventListener("click",async()=>{ clearLoginError(); const pw=document.getElementById("newProjectAdminPassword")?.value||""; const name=(document.getElementById("newProjectNameInput")?.value||"").trim(); if(pw!==ADMIN_PASSWORD){ showLoginError("Admin password is required to add a project."); return; } if(!name){ showLoginError("Enter a project name."); return; } const key=slugifyProjectName(name); if(projectRegistry.some(p=>p.key===key)){ showLoginError("A project with this name/key already exists."); return; } projectRegistry.push({name,key}); await saveProjectRegistry(); renderProjectDropdown(); document.getElementById("loginProjectSelect").value=key; document.getElementById("newProjectNameInput").value=""; document.getElementById("newProjectAdminPassword").value=""; document.getElementById("addProjectPanel")?.classList.remove("show"); }); document.getElementById("switchProjectBtn")?.addEventListener("click",()=>{ document.getElementById("loginScreen")?.classList.remove("login-hidden"); }); }
+async function openSelectedProject(){
+  clearLoginError();
+  projectRegistry = normaliseProjectRegistry(projectRegistry);
+  renderProjectDropdown();
+  const projectKey=document.getElementById("loginProjectSelect")?.value || projectRegistry[0]?.key || DEFAULT_FIREBASE_PROJECT_KEY;
+  const role=document.getElementById("loginRoleSelect")?.value || "viewer";
+  const project=projectRegistry.find(p=>p.key===projectKey) || projectRegistry[0] || DEFAULT_PROJECTS[0];
+  if(!project){ showLoginError("No projects are available. Refresh the page or create a project using Admin password."); return; }
+  if(role==="admin" && (document.getElementById("loginPasswordInput")?.value || "") !== ADMIN_PASSWORD){ showLoginError("Admin password is incorrect. Default password is admin."); return; }
+  activeProject={name:project.name,key:project.key,role};
+  firebaseClient.projectKey=project.key;
+  saveFirebaseSettings({config:DEFAULT_FIREBASE_CONFIG, projectKey:project.key});
+  updateProjectHeader();
+  setRoleMode(role);
+  resetInMemoryState();
+  document.getElementById("loginScreen")?.classList.add("login-hidden");
+  populateFirebaseInputs();
+  await initialiseFirebaseFromInputs().catch(()=>false);
+  await loadState();
+  dirty=false;
+  renderAll();
+}
+function initialiseLogin(){
+  projectRegistry=normaliseProjectRegistry(projectRegistry);
+  renderProjectDropdown();
+  const role=document.getElementById("loginRoleSelect");
+  role?.addEventListener("change",()=>{ document.getElementById("loginPasswordWrap")?.classList.toggle("hidden", role.value!=="admin"); });
+  role?.dispatchEvent(new Event("change"));
+  document.getElementById("loginEnterBtn")?.addEventListener("click",openSelectedProject);
+  document.getElementById("showAddProjectBtn")?.addEventListener("click",()=>{ document.getElementById("addProjectPanel")?.classList.add("show"); });
+  document.getElementById("cancelAddProjectBtn")?.addEventListener("click",()=>{ document.getElementById("addProjectPanel")?.classList.remove("show"); });
+  document.getElementById("addProjectBtn")?.addEventListener("click",async()=>{
+    clearLoginError();
+    const pw=document.getElementById("newProjectAdminPassword")?.value||"";
+    const name=(document.getElementById("newProjectNameInput")?.value||"").trim();
+    if(pw!==ADMIN_PASSWORD){ showLoginError("Admin password is required to add a project."); return; }
+    if(!name){ showLoginError("Enter a project name."); return; }
+    const key=slugifyProjectName(name);
+    projectRegistry=normaliseProjectRegistry(projectRegistry);
+    if(projectRegistry.some(p=>p.key===key)){ showLoginError("A project with this name/key already exists."); return; }
+    projectRegistry.push({name,key});
+    projectRegistry=normaliseProjectRegistry(projectRegistry);
+    await saveProjectRegistry();
+    renderProjectDropdown();
+    document.getElementById("loginProjectSelect").value=key;
+    document.getElementById("newProjectNameInput").value="";
+    document.getElementById("newProjectAdminPassword").value="";
+    document.getElementById("addProjectPanel")?.classList.remove("show");
+  });
+  document.getElementById("switchProjectBtn")?.addEventListener("click",()=>{ renderProjectDropdown(); document.getElementById("loginScreen")?.classList.remove("login-hidden"); });
+}
 function guardAdminAction(label="This action"){ if(!isAdminMode()){ alert(`${label} is available to Admin users only.`); return false; } return true; }
 
 function createEmptyWeekObject(){ const out={}; for(let w=1;w<=WEEK_COUNT;w++) out[String(w)]=0; return out; }
@@ -1219,7 +1310,7 @@ function renderActualsTable(){
   const body=resources.map(r=>{
     const v=calculateRoleVariance(r,settings.currentWeek), remaining=Number(r.contractEffortDays||0)-v.actualDays, overrun=v.actualDays>v.forecastDays&&v.forecastDays>0;
     const periodCells=isMonth?periods.map(p=>`<td class="num week-cell month-readonly" title="${esc(p.title)}">${num(sumWeeks(r,"actualByWeek",p.weeks),1)}</td>`).join(""):
-      periods.map(p=>{ const w=Number(p.key), val=Number(r.actualByWeek[String(w)]||0), status=actualCellStatusClass(r,w,val), forecast=Number(r.forecastByWeek?.[String(w)]||0), warn=actualCellWarningMessage(r,w,val), label=actualWeekHeaderLabel(w), lock=isActualCellLockedByInvoice(r,w); const lockText=invoiceLockTooltip(lock); const cellTitle=lockText || `${label} · Forecast ${num(forecast,1)} · Actual ${num(val,1)}`; return `<td class="week-cell actual-cell ${status} ${warn?"issue":""} ${lock?"invoice-locked":""}" title="${esc(cellTitle)}"><input class="actual-input ${val>7?"warn":""} ${status}" type="number" min="0" step="0.25" value="${val||""}" data-resource="${r.id}" data-week="${w}" aria-label="${esc(getActualName(r)||r.role||"Resource")} ${esc(label)} actual days" ${lock?"readonly disabled data-invoice-locked="true"":""}>${validationIcon(warn)}${lock?`<span class="invoice-lock-icon" title="${esc(lockText)}">🔒</span>`:""}</td>`; }).join("");
+      periods.map(p=>{ const w=Number(p.key), val=Number(r.actualByWeek[String(w)]||0), status=actualCellStatusClass(r,w,val), forecast=Number(r.forecastByWeek?.[String(w)]||0), warn=actualCellWarningMessage(r,w,val), label=actualWeekHeaderLabel(w), lock=isActualCellLockedByInvoice(r,w); const lockText=invoiceLockTooltip(lock); const cellTitle=lockText || `${label} · Forecast ${num(forecast,1)} · Actual ${num(val,1)}`; return `<td class="week-cell actual-cell ${status} ${warn?"issue":""} ${lock?"invoice-locked":""}" title="${esc(cellTitle)}"><input class="actual-input ${val>7?"warn":""} ${status}" type="number" min="0" step="0.25" value="${val||""}" data-resource="${r.id}" data-week="${w}" aria-label="${esc(getActualName(r)||r.role||"Resource")} ${esc(label)} actual days" ${lock?"readonly disabled data-invoice-locked=\"true\"":""}>${validationIcon(warn)}${lock?`<span class="invoice-lock-icon" title="${esc(lockText)}">🔒</span>`:""}</td>`; }).join("");
     const nameCell=`<input class="actual-name-input" type="text" value="${esc(getActualName(r))}" data-resource="${r.id}" aria-label="Actual name for ${esc(r.role||"resource")}">`;
     const sourceLabel=r.actualOnly?`<span class="badge blue">Actual only</span>`:`<span class="badge locked">Forecast copy</span>`;
     const deleteButton=r.actualOnly?`<button class="action danger row-action delete-row-btn" data-resource="${r.id}" title="Delete this actual-only row">Delete</button>`:"";

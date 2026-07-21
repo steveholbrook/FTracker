@@ -352,7 +352,7 @@ canvas { font-size: var(--app-font-size) !important; }
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
 <script>
 "use strict";
-const APP_VERSION = "3.3.0-multi-project";
+const APP_VERSION = "3.4.0-multi-project";
 const STORAGE_KEY = "financialTracker.blank.v2";
 const FIREBASE_SETTINGS_KEY = STORAGE_KEY + ".firebase";
 const DEFAULT_FIREBASE_PROJECT_KEY = "gwf";
@@ -1299,7 +1299,7 @@ function renderActualsTable(){
   const note=document.getElementById("actualsIntervalNote");
   if(note) note.innerHTML=isMonth?
     `Month view aggregates the underlying weekly actuals into dated month buckets such as M1 - Apr. It is read-only by design to protect auditability. Switch back to Weeks W1-W${WEEK_COUNT} to enter or edit actuals.` :
-    `Values can be decimals such as 0.5, 1, 2.5 or 5. Weekly headings show W number plus the Monday start date when Dashboard Start Date is set. Weekly cells turn green when actuals match the locked forecast and amber when they differ. Warning icons flag missing rates or actuals outside forecast range. Use FI Upload to populate actuals from a Finance timesheet export. Current horizon: W1-W${WEEK_COUNT}. <span class="keyboard-hint">Keyboard: <kbd>Enter</kbd> down <kbd>Tab</kbd> right <kbd>Shift+Tab</kbd> left <kbd>↑↓←→</kbd> move cells</span>`;
+    `Values can be decimals such as 0.5, 1, 2.5 or 5. Weekly headings show W number plus the Monday start date when Dashboard Start Date is set. Weekly cells turn green when actuals match the locked forecast and amber when they differ. Warning icons flag missing rates or actuals outside forecast range. Use FI Upload to populate actuals from a dynamic Finance timesheet export requiring Project, Employee/Supplier, Item Date, Quantity and UOM. UOM must contain Hours; Quantity is converted to days using Quantity ÷ 8. Current horizon: W1-W${WEEK_COUNT}. <span class="keyboard-hint">Keyboard: <kbd>Enter</kbd> down <kbd>Tab</kbd> right <kbd>Shift+Tab</kbd> left <kbd>↑↓←→</kbd> move cells</span>`;
   const disabled=!isForecastLoaded();
   ["saveActualsBtn","fiUploadBtn","addActualRowBtn","actualsFullscreenBtn","resetUnsavedBtn","exportCsvBtn"].forEach(id=>{ const btn=document.getElementById(id); if(btn) btn.disabled=disabled; });
   if(disabled){
@@ -2137,23 +2137,24 @@ function renderFiUploadReconciliation(result){
     <div class="fi-recon-metric"><div class="label">New resources</div><div class="value">${num(result.createdRows||0,0)}</div></div>
     <div class="fi-recon-metric"><div class="label">Unmatched resources</div><div class="value">${num(unmatched,0)}</div></div>
     <div class="fi-recon-metric"><div class="label">Total days imported</div><div class="value">${num(result.totalDaysImported||0,2)}</div></div>
-  </div><div class="fi-recon-note">${unmatched?"Unmatched resources were added as actual-only rows. Review their role, code and day rate before invoicing.":"All imported resources matched existing Forecast/Actuals rows."} ${Number(result.lockedCellsSkipped||0)?` ${result.lockedCellsSkipped} locked invoiced cell(s) were skipped and not overwritten.`:""} ${result.usedQuantityFallback?"Days column was not found, so Quantity with UOM Hours was converted to days using Quantity ÷ 8.":""}</div>`;
+  </div><div class="fi-recon-note">${unmatched?"Unmatched resources were added as actual-only rows. Review their role, code and day rate before invoicing.":"All imported resources matched existing Forecast/Actuals rows."} ${Number(result.lockedCellsSkipped||0)?` ${result.lockedCellsSkipped} locked invoiced cell(s) were skipped and not overwritten.`:""} ${result.usedQuantityFallback?"Quantity rows with UOM containing Hours were converted to days using Quantity ÷ 8.":""} ${Number(result.skippedNonHours||0)?`${result.skippedNonHours} row(s) skipped because UOM did not contain Hours.`:""}</div>`;
 }
 async function loadFiActualsSpreadsheet(file){
   if(!isForecastLoaded()){ showMessage("actualsMessage","Load a Forecast baseline before importing FI actuals.","bad"); goToView("forecastView"); return; }
   if(!settings.startDate){ alert("Enter a Dashboard Start Date first. FI Upload calculates weeks from the Week 1 Monday start date."); goToView("dashboardView"); return; }
   if(!isMondayIso(settings.startDate)){ alert("Dashboard Start Date must be a Monday before FI Upload can calculate week numbers."); goToView("dashboardView"); return; }
-  if(!confirm("FI Upload will populate weekly actuals using Project, Employee/Supplier, Item Date and Days/Quantity from the selected file. Matching code/name/week values will be overwritten by the imported totals. Continue?")) return;
+  if(!confirm("FI Upload will populate weekly actuals using Project, Employee/Supplier, Item Date, Quantity and UOM from the selected file. Matching code/name/week values will be overwritten by the imported totals. Continue?")) return;
   try{
     const parsed=file.name.toLowerCase().endsWith(".csv") ? await parseFiActualsCsv(file) : await parseFiActualsXlsx(file);
     const result=applyFiActuals(parsed.rows);
     result.usedQuantityFallback=!!parsed.usedQuantityFallback;
+    result.skippedNonHours=Number(parsed.skippedNonHours||0);
     lastFiReconciliation={...result};
     addAudit("FI actuals uploaded", `${file.name} · ${result.rowsImported} row(s) imported, ${result.updatedCells} week value(s), ${result.createdRows} new row(s), ${result.skippedRows} skipped row(s), ${num(result.totalDaysImported||0,2)} days`);
     markDirty();
     renderAll();
     renderFiUploadReconciliation(lastFiReconciliation);
-    showMessage("actualsMessage",`FI Upload complete: ${result.rowsImported} source row(s) imported, ${result.updatedCells} week value(s) populated, ${result.createdRows} new actual-only row(s) created, ${result.skippedRows} row(s) skipped, ${num(result.totalDaysImported||0,2)} total day(s) imported. ${Number(result.lockedCellsSkipped||0)?result.lockedCellsSkipped+" locked invoiced cell(s) skipped. ":""}Review then click Save Actuals. ${result.usedQuantityFallback ? "Days column was not found, so Quantity with UOM Hours was converted to days using Quantity ÷ 8." : ""}`,"ok");
+    showMessage("actualsMessage",`FI Upload complete: ${result.rowsImported} source row(s) imported, ${result.updatedCells} week value(s) populated, ${result.createdRows} new actual-only row(s) created, ${result.skippedRows} row(s) skipped, ${num(result.totalDaysImported||0,2)} total day(s) imported. ${Number(result.lockedCellsSkipped||0)?result.lockedCellsSkipped+" locked invoiced cell(s) skipped. ":""}Review then click Save Actuals. ${result.usedQuantityFallback ? "Quantity rows with UOM containing Hours were converted to days using Quantity ÷ 8." : ""}`,"ok");
   }catch(e){
     showMessage("actualsMessage",`FI Upload failed: ${e.message}`,"bad");
   }
@@ -2184,7 +2185,7 @@ function parseFiActualsCsv(file){
 }
 function parseFiActualsRows(rows){
   const headerRow=findFiActualsHeaderRow(rows);
-  if(!headerRow) throw new Error("Could not find FI header row. Expected columns Project, Employee/Supplier, Item Date and Days or Quantity.");
+  if(!headerRow) throw new Error("Could not find FI header row. Required columns are Project, Employee/Supplier, Item Date, Quantity and UOM. Column order can vary.");
   const headerIdx=headerRow-1;
   const header=(rows[headerIdx]||[]).map(cleanCell);
   const idx=fiActualsColumnIndexes(header);
@@ -2192,44 +2193,46 @@ function parseFiActualsRows(rows){
   if(idx.project<0) missing.push("Project");
   if(idx.employeeSupplier<0) missing.push("Employee/Supplier");
   if(idx.itemDate<0) missing.push("Item Date");
-  if(idx.days<0 && idx.quantity<0) missing.push("Days or Quantity");
-  if(missing.length) throw new Error(`FI actuals file is missing required column(s): ${missing.join(", ")}.`);
+  if(idx.quantity<0) missing.push("Quantity");
+  if(idx.uom<0) missing.push("UOM");
+  if(missing.length) throw new Error(`FI actuals file is missing required column(s): ${missing.join(", ")}. Required columns are Project, Employee/Supplier, Item Date, Quantity and UOM.`);
   const parsed=[];
-  let usedQuantityFallback=false;
+  let skippedNonHours=0;
   for(let i=headerIdx+1;i<rows.length;i++){
     const row=rows[i]||[];
     const project=cleanCell(row[idx.project]);
     const name=cleanCell(row[idx.employeeSupplier]);
     const itemDate=parseFiItemDate(row[idx.itemDate]);
-    if(!project && !name && !itemDate) continue;
-    let days=0;
-    if(idx.days>=0) days=parseNumber(row[idx.days]);
-    else{
-      const quantity=parseNumber(row[idx.quantity]);
-      const uom=idx.uom>=0 ? cleanCell(row[idx.uom]).toLowerCase() : "";
-      days = uom.includes("hour") ? quantity/8 : quantity;
-      usedQuantityFallback=true;
+    const quantity=parseNumber(row[idx.quantity]);
+    const uom=cleanCell(row[idx.uom]);
+    if(!project && !name && !itemDate && !uom && !quantity) continue;
+    // Required business rule: only time rows where UOM contains Hours are imported.
+    // Quantity is the number of hours. 8 hours = 1 day.
+    if(!uom.toLowerCase().includes("hour")){
+      skippedNonHours++;
+      parsed.push({sourceRow:i+1, project, name, itemDate, days:0, skippedReason:"UOM is not Hours"});
+      continue;
     }
-    parsed.push({sourceRow:i+1, project, name, itemDate, days});
+    const days=quantity/8;
+    parsed.push({sourceRow:i+1, project, name, itemDate, days, quantity, uom});
   }
-  return {rows:parsed, usedQuantityFallback};
+  return {rows:parsed, usedQuantityFallback:true, skippedNonHours};
 }
 function findFiActualsHeaderRow(rows){
   for(let i=0;i<Math.min(rows.length,40);i++){
     const normalised=(rows[i]||[]).map(normaliseHeaderName);
     const joined=normalised.join("|");
-    if(joined.includes("project") && joined.includes("employeesupplier") && joined.includes("itemdate") && (joined.includes("days") || joined.includes("quantity"))) return i+1;
+    if(joined.includes("project") && joined.includes("employeesupplier") && joined.includes("itemdate") && joined.includes("quantity") && joined.includes("uom")) return i+1;
   }
   return 0;
 }
 function fiActualsColumnIndexes(headers){
   return {
-    project:findHeaderIndex(headers,["Project"],-1),
+    project:findHeaderIndex(headers,["Project","Project Code","Code"],-1),
     employeeSupplier:findHeaderIndex(headers,["Employee/Supplier","Employee Supplier","Employee","Supplier","Name"],-1),
     itemDate:findHeaderIndex(headers,["Item Date","ItemDate","Date"],-1),
-    days:findHeaderIndex(headers,["Days","Day"],-1),
-    quantity:findHeaderIndex(headers,["Quantity","Qty"],-1),
-    uom:findHeaderIndex(headers,["UOM","Unit","Unit of Measure"],-1)
+    quantity:findHeaderIndex(headers,["Quantity","Qty","Hours","Hour Quantity"],-1),
+    uom:findHeaderIndex(headers,["UOM","Unit","Unit of Measure","UnitOfMeasure"],-1)
   };
 }
 function parseFiItemDate(value){

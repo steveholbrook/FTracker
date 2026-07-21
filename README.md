@@ -1,30 +1,35 @@
-# Financial Tracker v3.3 Multi-Project
+# Financial Tracker v3.4 Multi-Project
 
-## Fix included
+## Update included
 
-This build corrects the project selection issue on the opening login page.
+This version updates FI Upload actuals logic to support dynamic input file structures.
 
-Changes:
-- Always initialises the login project dropdown with default projects: GWF and Blackmores.
-- Sanitises and merges any cloud project registry with the default projects.
-- Prevents an empty or invalid cloud registry from wiping the project dropdown.
-- Sets a safe default selected project.
-- Widens the project dropdown for usability.
+Required FI upload columns, in any order:
 
-## Deploy to FTracker repository
+- Project
+- Employee/Supplier
+- Item Date
+- Quantity
+- UOM
 
-1. Open this ZIP.
-2. Copy `index.html` into the root of the FTracker GitHub repository.
-3. Commit and push.
-4. Wait for GitHub Pages deployment to complete.
-5. Open the app and confirm that GWF and Blackmores appear on the login screen.
+Mapping:
 
-## Admin login
+- Project → Actuals Code
+- Employee/Supplier → Actuals Name
+- Item Date → Actuals Week calculated from Dashboard Start Date
+- Quantity → number of hours
+- UOM → must contain `Hours`
 
-Default admin password:
+Calculation:
 
 ```text
-admin
+Actual Days = total Quantity hours per Project + Employee/Supplier + Week / 8
 ```
 
-Viewer mode does not require a password and is read-only.
+Rows where UOM does not contain `Hours` are skipped and reported in the FI Upload reconciliation.
+
+Invoice-locked actuals cells are still protected and skipped during FI Upload.
+
+## Deployment
+
+Replace the existing `index.html` in the FTracker GitHub repository with this `index.html`, commit to main, and allow GitHub Pages to redeploy.

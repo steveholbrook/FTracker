@@ -352,7 +352,7 @@ canvas { font-size: var(--app-font-size) !important; }
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
 <script>
 "use strict";
-const APP_VERSION = "3.5.0-multi-project";
+const APP_VERSION = "3.6.0-multi-project";
 const STORAGE_KEY = "financialTracker.blank.v2";
 const FIREBASE_SETTINGS_KEY = STORAGE_KEY + ".firebase";
 const DEFAULT_FIREBASE_PROJECT_KEY = "gwf";
@@ -1301,7 +1301,7 @@ function renderActualsTable(){
   const note=document.getElementById("actualsIntervalNote");
   if(note) note.innerHTML=isMonth?
     `Month view aggregates the underlying weekly actuals into dated month buckets such as M1 - Apr. It is read-only by design to protect auditability. Switch back to Weeks W1-W${WEEK_COUNT} to enter or edit actuals.` :
-    `Values can be decimals such as 0.5, 1, 2.5 or 5. Weekly headings show W number plus the Monday start date when Dashboard Start Date is set. Weekly cells turn green when actuals match the locked forecast and amber when they differ. Warning icons flag missing rates or actuals outside forecast range. Use FI Upload to populate actuals from a dynamic Finance timesheet export requiring Project, Employee/Supplier, Item Date, Quantity, UOM and Location. UOM must contain Hours; Quantity is converted to days using IND = 9 hours/day and ANZ = 8 hours/day. Current horizon: W1-W${WEEK_COUNT}. <span class="keyboard-hint">Keyboard: <kbd>Enter</kbd> down <kbd>Tab</kbd> right <kbd>Shift+Tab</kbd> left <kbd>↑↓←→</kbd> move cells</span>`;
+    `Values can be decimals such as 0.5, 1, 2.5 or 5. Weekly headings show W number plus the Monday start date when Dashboard Start Date is set. Weekly cells turn green when actuals match the locked forecast and amber when they differ. Warning icons flag missing rates or actuals outside forecast range. Use FI Upload to populate actuals from a dynamic Finance timesheet export requiring Project, Employee/Supplier, Item Date, Quantity and UOM. Location is used when provided; if not provided, the app derives Location from the loaded Forecast/Actuals row using Project + Employee/Supplier. UOM must contain Hours; Quantity is converted to days using IND = 9 hours/day and ANZ = 8 hours/day. Current horizon: W1-W${WEEK_COUNT}. <span class="keyboard-hint">Keyboard: <kbd>Enter</kbd> down <kbd>Tab</kbd> right <kbd>Shift+Tab</kbd> left <kbd>↑↓←→</kbd> move cells</span>`;
   const disabled=!isForecastLoaded();
   ["saveActualsBtn","fiUploadBtn","addActualRowBtn","actualsFullscreenBtn","resetUnsavedBtn","exportCsvBtn"].forEach(id=>{ const btn=document.getElementById(id); if(btn) btn.disabled=disabled; });
   if(disabled){
@@ -1807,7 +1807,7 @@ function getForecastFilterValues(){
 function resourceMatchesStatusFilters(resource, filters=getForecastFilterValues()){
   if(filters.stream && resource.stream !== filters.stream) return false;
   if(filters.role && resource.role !== filters.role) return false;
-  const loc=resource.actualLocation||resource.baselineLocation||"";
+  const loc=normaliseEmployeeLocation(resource.location || resource.actualLocation || resource.baselineLocation || "");
   if(filters.location && loc !== filters.location) return false;
   const searchText=`${resource.name||""} ${getActualName(resource)||""} ${resource.role||""} ${resource.stream||""} ${resource.code||""}`.toLowerCase();
   if(filters.name && !searchText.includes(filters.name)) return false;
@@ -1995,7 +1995,7 @@ function printForecastStatusCheck(){
   openPrintWindow(html);
 }
 
-function populateFilters(){ const forecastResources=getForecastResources(); setOptions("filterStream",unique(forecastResources.map(r=>r.stream)),"All Streams"); setOptions("filterRole",unique(forecastResources.map(r=>r.role)),"All Roles"); setOptions("filterLocation",unique(forecastResources.map(r=>r.actualLocation||r.baselineLocation)),"All Locations"); }
+function populateFilters(){ const forecastResources=getForecastResources(); setOptions("filterStream",unique(forecastResources.map(r=>r.stream)),"All Streams"); setOptions("filterRole",unique(forecastResources.map(r=>r.role)),"All Roles"); setOptions("filterLocation",unique(forecastResources.map(r=>normaliseEmployeeLocation(r.location || r.actualLocation || r.baselineLocation || ""))),"All Locations"); }
 function unique(values){ return [...new Set(values.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b))); }
 function setOptions(id,options,label){ const el=document.getElementById(id), current=el.value; el.innerHTML=`<option value="">${label}</option>`+options.map(o=>`<option value="${esc(o)}">${esc(o)}</option>`).join(""); if(options.includes(current)) el.value=current; }
 function renderForecastTable(){
@@ -2007,7 +2007,7 @@ function renderForecastTable(){
   }
   const filtered=getFilteredForecastResources();
   const weekHeaders=weeks().map(w=>`<th class="week-cell" title="${esc(weekRangeLabel(w))}">W${w}</th>`).join("");
-  const rows=filtered.map(r=>`<tr><td class="sticky c0">${esc(r.stream)}</td><td class="sticky c1">${esc(r.role)}</td><td class="sticky c2">${esc(r.code)}</td><td class="sticky c3">${esc(r.name)}</td><td>${esc(r.actualLocation||r.baselineLocation)}</td><td class="num">${currency(r.dayRate)}</td><td class="num">${num(r.forecastTotalDays,1)}</td><td class="num">${currency(r.forecastTotalValue)}</td><td>${plannedStartLabel(r)}</td><td>${plannedEndLabel(r)}</td>${weeks().map(w=>`<td class="num readonly-cell week-cell">${num(r.forecastByWeek[String(w)]||0,1)}</td>`).join("")}</tr>`).join("");
+  const rows=filtered.map(r=>`<tr><td class="sticky c0">${esc(r.stream)}</td><td class="sticky c1">${esc(r.role)}</td><td class="sticky c2">${esc(r.code)}</td><td class="sticky c3">${esc(r.name)}</td><td>${esc(normaliseEmployeeLocation(r.location || r.actualLocation || r.baselineLocation || "")||"—")}</td><td class="num">${currency(r.dayRate)}</td><td class="num">${num(r.forecastTotalDays,1)}</td><td class="num">${currency(r.forecastTotalValue)}</td><td>${plannedStartLabel(r)}</td><td>${plannedEndLabel(r)}</td>${weeks().map(w=>`<td class="num readonly-cell week-cell">${num(r.forecastByWeek[String(w)]||0,1)}</td>`).join("")}</tr>`).join("");
   const totalDays=filtered.reduce((s,r)=>s+sumByWeek(r,"forecastByWeek",1,WEEK_COUNT),0), totalValue=filtered.reduce((s,r)=>s+Number(r.forecastTotalValue||0),0);
   document.getElementById("forecastTable").innerHTML=`<thead><tr><th class="sticky c0">Stream</th><th class="sticky c1">Role</th><th class="sticky c2">Code</th><th class="sticky c3">Name</th><th>Location</th><th class="num">Day Rate</th><th class="num">Forecast Days</th><th class="num">Forecast Value</th><th>Planned Start</th><th>Planned End</th>${weekHeaders}</tr></thead><tbody>${rows}</tbody><tfoot><tr><td class="sticky c0">TOTAL</td><td class="sticky c1"></td><td class="sticky c2"></td><td class="sticky c3"></td><td></td><td></td><td class="num">${num(totalDays,1)}</td><td class="num">${currency(totalValue)}</td><td></td><td></td>${weeks().map(w=>`<td class="num week-cell">${num(filtered.reduce((s,r)=>s+Number(r.forecastByWeek[String(w)]||0),0),1)}</td>`).join("")}</tr></tfoot>`;
 }
@@ -2137,30 +2137,34 @@ function renderFiUploadReconciliation(result){
   if(!result){ el.className="fi-recon-report"; el.innerHTML=""; return; }
   el.className="fi-recon-report show";
   const unmatched=Number(result.unmatchedResources)||0;
+  const derived=Number(result.derivedLocations)||0;
   el.innerHTML=`<h3>FI Upload reconciliation</h3><div class="fi-recon-grid">
     <div class="fi-recon-metric"><div class="label">Rows imported</div><div class="value">${num(result.rowsImported||0,0)}</div></div>
     <div class="fi-recon-metric"><div class="label">Rows skipped</div><div class="value">${num(result.skippedRows||0,0)}</div></div>
     <div class="fi-recon-metric"><div class="label">New resources</div><div class="value">${num(result.createdRows||0,0)}</div></div>
     <div class="fi-recon-metric"><div class="label">Unmatched resources</div><div class="value">${num(unmatched,0)}</div></div>
     <div class="fi-recon-metric"><div class="label">Total days imported</div><div class="value">${num(result.totalDaysImported||0,2)}</div></div>
-  </div><div class="fi-recon-note">${unmatched?"Unmatched resources were added as actual-only rows. Review their role, code and day rate before invoicing.":"All imported resources matched existing Forecast/Actuals rows."} ${Number(result.lockedCellsSkipped||0)?` ${result.lockedCellsSkipped} locked invoiced cell(s) were skipped and not overwritten.`:""} ${result.usedQuantityFallback?"Quantity rows with UOM containing Hours were converted to days using Location: IND = 9 hours/day, ANZ = 8 hours/day.":""} ${Number(result.skippedNonHours||0)?`${result.skippedNonHours} row(s) skipped because UOM did not contain Hours.`:""} ${Number(result.skippedInvalidLocation||0)?`${result.skippedInvalidLocation} row(s) skipped because Location was not IND or ANZ.`:""}</div>`;
+  </div><div class="fi-recon-note">${unmatched?"Unmatched resources were added as actual-only rows. Review their role, code, location and day rate before invoicing.":"All imported resources matched existing Forecast/Actuals rows."} ${Number(result.lockedCellsSkipped||0)?` ${result.lockedCellsSkipped} locked invoiced cell(s) were skipped and not overwritten.`:""} ${result.usedQuantityFallback?"Quantity rows with UOM containing Hours were converted to days using Location: IND = 9 hours/day, ANZ = 8 hours/day.":""} ${derived?`${derived} row(s) had Location derived from the loaded Forecast/Actuals row because the FI file did not provide a valid Location.`:""} ${Number(result.skippedNonHours||0)?`${result.skippedNonHours} row(s) skipped because UOM did not contain Hours.`:""} ${Number(result.skippedInvalidLocation||0)?`${result.skippedInvalidLocation} row(s) skipped because Location was missing/invalid and could not be derived from Forecast/Actuals.`:""}</div>`;
 }
 async function loadFiActualsSpreadsheet(file){
   if(!isForecastLoaded()){ showMessage("actualsMessage","Load a Forecast baseline before importing FI actuals.","bad"); goToView("forecastView"); return; }
   if(!settings.startDate){ alert("Enter a Dashboard Start Date first. FI Upload calculates weeks from the Week 1 Monday start date."); goToView("dashboardView"); return; }
   if(!isMondayIso(settings.startDate)){ alert("Dashboard Start Date must be a Monday before FI Upload can calculate week numbers."); goToView("dashboardView"); return; }
-  if(!confirm("FI Upload will populate weekly actuals using Project, Employee/Supplier, Item Date, Quantity, UOM and Location from the selected file. Matching code/name/week values will be overwritten by the imported totals. Continue?")) return;
+  if(!confirm("FI Upload will populate weekly actuals using Project, Employee/Supplier, Item Date, Quantity and UOM from the selected file. Location will be used when present, otherwise derived from the loaded Forecast/Actuals row using Project + Employee/Supplier. Matching code/name/week values will be overwritten by the imported totals. Continue?")) return;
   try{
     const parsed=file.name.toLowerCase().endsWith(".csv") ? await parseFiActualsCsv(file) : await parseFiActualsXlsx(file);
     const result=applyFiActuals(parsed.rows);
     result.usedQuantityFallback=!!parsed.usedQuantityFallback;
     result.skippedNonHours=Number(parsed.skippedNonHours||0);
+    result.skippedInvalidLocation=Number(parsed.skippedInvalidLocation||0);
+    result.derivedLocations=Number(parsed.derivedLocations||0);
+    result.locationColumnPresent=!!parsed.locationColumnPresent;
     lastFiReconciliation={...result};
     addAudit("FI actuals uploaded", `${file.name} · ${result.rowsImported} row(s) imported, ${result.updatedCells} week value(s), ${result.createdRows} new row(s), ${result.skippedRows} skipped row(s), ${num(result.totalDaysImported||0,2)} days`);
     markDirty();
     renderAll();
     renderFiUploadReconciliation(lastFiReconciliation);
-    showMessage("actualsMessage",`FI Upload complete: ${result.rowsImported} source row(s) imported, ${result.updatedCells} week value(s) populated, ${result.createdRows} new actual-only row(s) created, ${result.skippedRows} row(s) skipped, ${num(result.totalDaysImported||0,2)} total day(s) imported. ${Number(result.lockedCellsSkipped||0)?result.lockedCellsSkipped+" locked invoiced cell(s) skipped. ":""}Review then click Save Actuals. ${result.usedQuantityFallback ? "Quantity rows with UOM containing Hours were converted to days using Location: IND = 9 hours/day, ANZ = 8 hours/day." : ""}`,"ok");
+    showMessage("actualsMessage",`FI Upload complete: ${result.rowsImported} source row(s) imported, ${result.updatedCells} week value(s) populated, ${result.createdRows} new actual-only row(s) created, ${result.skippedRows} row(s) skipped, ${num(result.totalDaysImported||0,2)} total day(s) imported. ${Number(result.lockedCellsSkipped||0)?result.lockedCellsSkipped+" locked invoiced cell(s) skipped. ":""}Review then click Save Actuals. ${result.usedQuantityFallback ? "Quantity rows with UOM containing Hours were converted to days using Location: IND = 9 hours/day, ANZ = 8 hours/day." : ""} ${Number(result.derivedLocations||0)?result.derivedLocations+" row(s) had Location derived from Forecast/Actuals. ":""}`,"ok");
   }catch(e){
     showMessage("actualsMessage",`FI Upload failed: ${e.message}`,"bad");
   }
@@ -2191,7 +2195,7 @@ function parseFiActualsCsv(file){
 }
 function parseFiActualsRows(rows){
   const headerRow=findFiActualsHeaderRow(rows);
-  if(!headerRow) throw new Error("Could not find FI header row. Required columns are Project, Employee/Supplier, Item Date, Quantity, UOM and Location. Column order can vary.");
+  if(!headerRow) throw new Error("Could not find FI header row. Required columns are Project, Employee/Supplier, Item Date, Quantity and UOM. Location is optional if it can be derived from the loaded Forecast/Actuals row. Column order can vary.");
   const headerIdx=headerRow-1;
   const header=(rows[headerIdx]||[]).map(cleanCell);
   const idx=fiActualsColumnIndexes(header);
@@ -2201,10 +2205,9 @@ function parseFiActualsRows(rows){
   if(idx.itemDate<0) missing.push("Item Date");
   if(idx.quantity<0) missing.push("Quantity");
   if(idx.uom<0) missing.push("UOM");
-  if(idx.location<0) missing.push("Location");
-  if(missing.length) throw new Error(`FI actuals file is missing required column(s): ${missing.join(", ")}. Required columns are Project, Employee/Supplier, Item Date, Quantity, UOM and Location.`);
+  if(missing.length) throw new Error(`FI actuals file is missing required column(s): ${missing.join(", ")}. Required columns are Project, Employee/Supplier, Item Date, Quantity and UOM. Location is optional if it can be derived from the loaded Forecast/Actuals row.`);
   const parsed=[];
-  let skippedNonHours=0, skippedInvalidLocation=0;
+  let skippedNonHours=0, skippedInvalidLocation=0, derivedLocations=0;
   for(let i=headerIdx+1;i<rows.length;i++){
     const row=rows[i]||[];
     const project=cleanCell(row[idx.project]);
@@ -2212,13 +2215,16 @@ function parseFiActualsRows(rows){
     const itemDate=parseFiItemDate(row[idx.itemDate]);
     const quantity=parseNumber(row[idx.quantity]);
     const uom=cleanCell(row[idx.uom]);
-    const location=normaliseEmployeeLocation(row[idx.location]);
-    if(!project && !name && !itemDate && !uom && !quantity && !location) continue;
+    const rawLocation=idx.location>=0 ? row[idx.location] : "";
+    const resolvedLocation=resolveFiActualLocation(project,name,rawLocation);
+    const location=resolvedLocation.location;
+    if(!project && !name && !itemDate && !uom && !quantity && !cleanCell(rawLocation)) continue;
     if(!location){
       skippedInvalidLocation++;
-      parsed.push({sourceRow:i+1, project, name, itemDate, days:0, quantity, uom, location:"", skippedReason:"Location is not IND or ANZ"});
+      parsed.push({sourceRow:i+1, project, name, itemDate, days:0, quantity, uom, location:"", skippedReason:"Location is missing/invalid and could not be derived from Forecast/Actuals"});
       continue;
     }
+    if(resolvedLocation.source!=="upload") derivedLocations++;
     // Required business rule: only time rows where UOM contains Hours are imported.
     // Quantity is the number of hours. IND uses 9 hours/day; ANZ uses 8 hours/day.
     if(!uom.toLowerCase().includes("hour")){
@@ -2227,15 +2233,15 @@ function parseFiActualsRows(rows){
       continue;
     }
     const days=quantity/hoursPerDayForLocation(location);
-    parsed.push({sourceRow:i+1, project, name, itemDate, days, quantity, uom, location, hoursPerDay:hoursPerDayForLocation(location)});
+    parsed.push({sourceRow:i+1, project, name, itemDate, days, quantity, uom, location, hoursPerDay:hoursPerDayForLocation(location), locationSource:resolvedLocation.source});
   }
-  return {rows:parsed, usedQuantityFallback:true, skippedNonHours, skippedInvalidLocation};
+  return {rows:parsed, usedQuantityFallback:true, skippedNonHours, skippedInvalidLocation, derivedLocations, locationColumnPresent: idx.location>=0};
 }
 function findFiActualsHeaderRow(rows){
   for(let i=0;i<Math.min(rows.length,40);i++){
     const normalised=(rows[i]||[]).map(normaliseHeaderName);
     const joined=normalised.join("|");
-    if(joined.includes("project") && joined.includes("employeesupplier") && joined.includes("itemdate") && joined.includes("quantity") && joined.includes("uom") && joined.includes("location")) return i+1;
+    if(joined.includes("project") && joined.includes("employeesupplier") && joined.includes("itemdate") && joined.includes("quantity") && joined.includes("uom")) return i+1;
   }
   return 0;
 }
@@ -2248,6 +2254,24 @@ function fiActualsColumnIndexes(headers){
     uom:findHeaderIndex(headers,["UOM","Unit","Unit of Measure","UnitOfMeasure"],-1),
     location:findHeaderIndex(headers,["Location","Employee Location","Work Location","Resource Location"],-1)
   };
+}
+function resolveFiActualLocation(project,name,rawLocation){
+  const direct=normaliseEmployeeLocation(rawLocation);
+  if(direct) return {location:direct, source:"upload"};
+  const exact=findResourceForFiActual(project,name);
+  if(exact){
+    const loc=normaliseEmployeeLocation(exact.location || exact.actualLocation || exact.baselineLocation || "");
+    if(loc) return {location:loc, source:"matched resource"};
+  }
+  const forecastExact=getForecastResources().find(r=>normaliseCompare(r.code)===normaliseCompare(project) && normaliseCompare(r.name)===normaliseCompare(name));
+  if(forecastExact){
+    const loc=normaliseEmployeeLocation(forecastExact.location || forecastExact.actualLocation || forecastExact.baselineLocation || "");
+    if(loc) return {location:loc, source:"forecast"};
+  }
+  const codeMatches=getForecastResources().filter(r=>normaliseCompare(r.code)===normaliseCompare(project));
+  const uniqueLocations=unique(codeMatches.map(r=>normaliseEmployeeLocation(r.location || r.actualLocation || r.baselineLocation || "")).filter(Boolean));
+  if(uniqueLocations.length===1) return {location:uniqueLocations[0], source:"project code"};
+  return {location:"", source:"missing"};
 }
 function parseFiItemDate(value){
   if(value instanceof Date && !Number.isNaN(value.getTime())) return localIsoFromDate(value);
@@ -2358,7 +2382,7 @@ async function loadForecastSpreadsheet(file){
       weekCount:loadedWeekCount,
       columnWeekCount:parsed.columnWeekCount||loadedWeekCount,
       dataWeekCount:parsed.dataWeekCount||loadedWeekCount,
-      format:"GWF Forecast v0.1"
+      format:"GWF Forecast v0.2/v3.6"
     };
     resources=createResourcesFromBase();
     syncCurrentWeekFromStartDate();
@@ -2464,20 +2488,20 @@ function findHeaderIndex(headers,aliases,fallback){
 }
 function forecastColumnIndexes(headers){
   return {
-    baselineLocation:findHeaderIndex(headers,["Baseline Location","BaselineLocation"],0),
-    actualLocation:findHeaderIndex(headers,["Actual Location","ActualLocation"],1),
+    baselineLocation:findHeaderIndex(headers,["Baseline Location","BaselineLocation"],-1),
+    actualLocation:findHeaderIndex(headers,["Actual Location","ActualLocation"],-1),
     location:findHeaderIndex(headers,["Location","Employee Location","Work Location","Resource Location"],-1),
-    city:findHeaderIndex(headers,["City"],2),
-    stream:findHeaderIndex(headers,["Stream"],3),
-    role:findHeaderIndex(headers,["Role"],4),
-    code:findHeaderIndex(headers,["Code","Resource Code"],5),
-    name:findHeaderIndex(headers,["Name","Resource Name"],6),
-    dayRate:findHeaderIndex(headers,["Day Rate","DayRate","Rate"],7),
-    contractEffortDays:findHeaderIndex(headers,["Contract Effort Days","Contract Days","Forecast Days"],8),
-    contractTotal:findHeaderIndex(headers,["Contract Total","Forecast Value","Contract Value"],9),
-    plannedStartDate:findHeaderIndex(headers,["Planned Start Date","Planned Start"],10),
-    plannedEndDate:findHeaderIndex(headers,["Planned End Date","Planned End"],11),
-    revenueVariance:findHeaderIndex(headers,["Revenue Variance","Variance"],14)
+    city:findHeaderIndex(headers,["City"],-1),
+    stream:findHeaderIndex(headers,["Stream"],-1),
+    role:findHeaderIndex(headers,["Role"],-1),
+    code:findHeaderIndex(headers,["Code","Resource Code"],-1),
+    name:findHeaderIndex(headers,["Name","Resource Name"],-1),
+    dayRate:findHeaderIndex(headers,["Day Rate","DayRate","Rate"],-1),
+    contractEffortDays:findHeaderIndex(headers,["Contract Effort Days","Contract Days","Forecast Days"],-1),
+    contractTotal:findHeaderIndex(headers,["Contract Total","Forecast Value","Contract Value"],-1),
+    plannedStartDate:findHeaderIndex(headers,["Planned Start Date","Planned Start"],-1),
+    plannedEndDate:findHeaderIndex(headers,["Planned End Date","Planned End"],-1),
+    revenueVariance:findHeaderIndex(headers,["Revenue Variance","Variance"],-1)
   };
 }
 function forecastWeekColumns(headers){

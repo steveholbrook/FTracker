@@ -1,4 +1,4 @@
-# Financial Tracker v3.4 Multi-Project
+# Financial Tracker v3.5 Multi-Project
 
 ## Update included
 
@@ -33,3 +33,17 @@ Invoice-locked actuals cells are still protected and skipped during FI Upload.
 ## Deployment
 
 Replace the existing `index.html` in the FTracker GitHub repository with this `index.html`, commit to main, and allow GitHub Pages to redeploy.
+
+
+## v3.5 Location-aware actuals conversion
+
+This version adds a required `Location` field to Forecast and FI Actuals uploads. Allowed values are:
+
+- `IND` — FI Upload converts hours to days using 9 hours per day.
+- `ANZ` — FI Upload converts hours to days using 8 hours per day.
+
+Forecast upload required columns include: `Stream`, `Role`, `Code`, `Name`, `Location`, `Day Rate`, and `W1...Wn`.
+
+FI Upload required columns include: `Project`, `Employee/Supplier`, `Item Date`, `Quantity`, `UOM`, and `Location`. `UOM` must contain `Hours`; `Quantity` is treated as hours and converted to days based on `Location`.
+
+Deploy `index.html` to the FTracker repository. Keep both templates in the same folder as `index.html` if you want users to download clean upload templates.

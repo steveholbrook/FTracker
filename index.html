@@ -179,6 +179,7 @@ canvas { font-size: var(--app-font-size) !important; }
         <span class="meta-pill">% Complete: <strong id="headerPercentComplete">—</strong></span>
         <span class="meta-pill">Last saved: <strong id="headerLastSaved">Not saved</strong></span>
         <label class="font-control" title="Adjust screen font size"><span>Font</span><input id="fontSizeSlider" type="range" min="6" max="18" step="1" value="14"><strong id="fontSizeValue">14px</strong></label>
+        <label class="font-control" title="Choose how day values are displayed without changing stored values"><span>Days</span><select id="displayPrecisionSelect"><option value="whole">Whole days</option><option value="standard" selected>Standard</option><option value="finance">Finance (2dp)</option></select></label>
       </div>
     </div>
     <div class="workflow-strip no-print" aria-label="Guided workflow">
@@ -367,7 +368,7 @@ canvas { font-size: var(--app-font-size) !important; }
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
 <script>
 "use strict";
-const APP_VERSION = "3.9.0-multi-project";
+const APP_VERSION = "3.11.0-multi-project";
 const STORAGE_KEY = "financialTracker.blank.v2";
 const FIREBASE_SETTINGS_KEY = STORAGE_KEY + ".firebase";
 const DEFAULT_FIREBASE_PROJECT_KEY = "gwf";
@@ -393,7 +394,7 @@ const baseResources = [];
 let forecastBaseline = [];
 let baselineMeta = { source: "No forecast loaded", loadedAt: "", fileName: "No forecast loaded", weekCount: 0, dataWeekCount: 0 };
 let resources = [];
-let settings = { currentWeek: 1, startDate: "", percentComplete: 0, lastSaved: null, actualsInterval: "week", fontSize: 14, numberOfWeeks: WEEK_COUNT, invoiceEndWeek: 1, invoiceCode: "", invoiceExportMode: "customer" };
+let settings = { currentWeek: 1, startDate: "", percentComplete: 0, lastSaved: null, actualsInterval: "week", fontSize: 14, displayPrecision: "standard", numberOfWeeks: WEEK_COUNT, invoiceEndWeek: 1, invoiceCode: "", invoiceExportMode: "customer" };
 const invoiceMappings = [];
 let changeLog = [];
 let forecastChangeRequests = [];
@@ -460,7 +461,7 @@ async function loadProjectRegistry(){
   }
 }
 async function saveProjectRegistry(){ try{ projectRegistry=normaliseProjectRegistry(projectRegistry); await initialiseFirebaseFromSavedConfig(false); const ref=await registryDocRef(); if(ref) await ref.set({projects:projectRegistry, updatedAt: firebase.firestore.FieldValue.serverTimestamp()},{merge:false}); }catch(e){ console.warn("Project registry save failed", e.message); } }
-function resetInMemoryState(){ forecastBaseline=[]; resources=[]; baselineMeta={ source:"No forecast loaded", loadedAt:"", fileName:"No forecast loaded", weekCount:0, dataWeekCount:0 }; forecastChangeRequests=[]; invoicePeriods=[]; invoiceCodeConfigs={}; changeLog=[]; lastFiReconciliation=null; setWeekHorizon(50,{allowBelowData:true,reason:"Project switch"}); settings={currentWeek:1,startDate:"",percentComplete:0,lastSaved:null,actualsInterval:"week",fontSize:14,numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer"}; dirty=false; }
+function resetInMemoryState(){ forecastBaseline=[]; resources=[]; baselineMeta={ source:"No forecast loaded", loadedAt:"", fileName:"No forecast loaded", weekCount:0, dataWeekCount:0 }; forecastChangeRequests=[]; invoicePeriods=[]; invoiceCodeConfigs={}; changeLog=[]; lastFiReconciliation=null; setWeekHorizon(50,{allowBelowData:true,reason:"Project switch"}); settings={currentWeek:1,startDate:"",percentComplete:0,lastSaved:null,actualsInterval:"week",fontSize:14,displayPrecision:"standard",numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer"}; dirty=false; }
 async function openSelectedProject(){
   clearLoginError();
   projectRegistry = normaliseProjectRegistry(projectRegistry);
@@ -520,7 +521,8 @@ function createResourcesFromBase(){
     ...normaliseForecastResource(r),
     actualOnly:false,
     actualName:r.actualName||r.name||"",
-    actualByWeek:sanitiseWeekObject(r.actualByWeek||{})
+    actualByWeek:sanitiseWeekObject(r.actualByWeek||{}),
+    actualMonthSplitByWeek:sanitiseMonthSplitObject(r.actualMonthSplitByWeek||{})
   }));
 }
 function getActualName(resource){ return String(resource.actualName ?? resource.name ?? ""); }
@@ -547,7 +549,8 @@ function createActualOnlyResource(seed={}){
     forecastTotalValue: 0,
     revenueVariance: 0,
     forecastByWeek: createEmptyWeekObject(),
-    actualByWeek: sanitiseWeekObject(seed.actualByWeek||{})
+    actualByWeek: sanitiseWeekObject(seed.actualByWeek||{}),
+    actualMonthSplitByWeek: sanitiseMonthSplitObject(seed.actualMonthSplitByWeek||{})
   };
 }
 function actualRecord(resource){
@@ -567,15 +570,23 @@ function actualRecord(resource){
     city: resource.city||"",
     plannedStartWeek: Number(resource.plannedStartWeek)||0,
     plannedEndWeek: Number(resource.plannedEndWeek)||0,
-    actualByWeek: resource.actualByWeek
+    actualByWeek: resource.actualByWeek,
+    actualMonthSplitByWeek: resource.actualMonthSplitByWeek||{}
   };
 }
 function weeks(){ return Array.from({length:WEEK_COUNT},(_,i)=>i+1); }
 function clamp(value,min,max,fallback=0){ const n=Number(value); return Number.isFinite(n)?Math.min(max,Math.max(min,n)):fallback; }
 function weekValue(value){ const n=Number(value); if(!Number.isFinite(n)||n<0) return 0; return Math.round(n*100)/100; }
 function currency(value){ return new Intl.NumberFormat("en-AU",{style:"currency",currency:"AUD",maximumFractionDigits:0}).format(Number(value)||0); }
-function num(value,dec=1){ return new Intl.NumberFormat("en-AU",{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(Number(value)||0); }
-function pct(value,dec=1){ return `${num(value,dec)}%`; }
+function num(value,dec=1){
+  const n=Number(value)||0;
+  if(dec===0) return new Intl.NumberFormat("en-AU",{minimumFractionDigits:0,maximumFractionDigits:0}).format(n);
+  const mode=settings?.displayPrecision||"standard";
+  if(mode==="whole") return new Intl.NumberFormat("en-AU",{minimumFractionDigits:0,maximumFractionDigits:0}).format(Math.round(n));
+  if(mode==="finance") return new Intl.NumberFormat("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2}).format(n);
+  return new Intl.NumberFormat("en-AU",{minimumFractionDigits:0,maximumFractionDigits:3}).format(n);
+}
+function pct(value,dec=1){ return `${new Intl.NumberFormat("en-AU",{minimumFractionDigits:dec,maximumFractionDigits:dec}).format(Number(value)||0)}%`; }
 function parseLocalIsoDate(iso){
   const m=String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if(!m) return null;
@@ -701,6 +712,7 @@ function buildStatePayload(){
     invoiceExportMode:settings.invoiceExportMode,
     actualsInterval:settings.actualsInterval,
     fontSize:settings.fontSize,
+    displayPrecision:settings.displayPrecision,
     numberOfWeeks:WEEK_COUNT,
     baselineMeta,
     forecastBaseline:forecastBaseline.map(forecastRecord),
@@ -828,6 +840,7 @@ function applyStatePayload(payload){
   settings.invoiceExportMode=["customer","internal"].includes(payload.invoiceExportMode)?payload.invoiceExportMode:"customer";
   settings.actualsInterval=["week","month"].includes(payload.actualsInterval)?payload.actualsInterval:"week";
   settings.fontSize=clamp(payload.fontSize,6,18,14);
+  settings.displayPrecision=["whole","standard","finance"].includes(payload.displayPrecision)?payload.displayPrecision:"standard";
   settings.numberOfWeeks=WEEK_COUNT;
   settings.lastSaved=payload.savedAt||null;
   forecastChangeRequests=Array.isArray(payload.forecastChangeRequests)?payload.forecastChangeRequests:[];
@@ -857,6 +870,7 @@ function mergeActualsPayload(actuals){
     if(existing.has(a.id)){
       const r=existing.get(a.id);
       r.actualByWeek=sanitiseWeekObject(a.actualByWeek||{});
+      r.actualMonthSplitByWeek=sanitiseMonthSplitObject(a.actualMonthSplitByWeek||{});
       if(a.actualName!==undefined) r.actualName=String(a.actualName||"");
       else if(a.name!==undefined && a.name!==r.name) r.actualName=String(a.name||"");
     }else if(a.actualOnly){
@@ -879,6 +893,19 @@ async function loadState(){
   catch(e){ console.warn("Unable to load saved state",e); }
 }
 function sanitiseWeekObject(obj){ const out={}; for(let w=1;w<=WEEK_COUNT;w++) out[String(w)]=weekValue(obj?.[String(w)]||0); return out; }
+function sanitiseMonthSplitObject(obj){
+  const out={};
+  if(!obj || typeof obj!=="object") return out;
+  Object.entries(obj).forEach(([week,monthMap])=>{
+    if(!monthMap || typeof monthMap!=="object") return;
+    const clean={};
+    Object.entries(monthMap).forEach(([monthKey,value])=>{
+      if(/^\d{4}-\d{2}$/.test(monthKey)) clean[monthKey]=weekValue(value);
+    });
+    if(Object.keys(clean).length) out[String(Number(week)||week)]=clean;
+  });
+  return out;
+}
 function exportActualsJson(){
   const payload={
     appVersion:APP_VERSION,
@@ -891,6 +918,7 @@ function exportActualsJson(){
     invoiceExportMode:settings.invoiceExportMode,
     actualsInterval:settings.actualsInterval,
     fontSize:settings.fontSize,
+    displayPrecision:settings.displayPrecision,
     numberOfWeeks:WEEK_COUNT,
     baselineMeta,
     forecastBaseline:forecastBaseline.map(forecastRecord),
@@ -921,6 +949,7 @@ function importActualsJson(file){
       if(payload.invoiceExportMode!==undefined) settings.invoiceExportMode=["customer","internal"].includes(payload.invoiceExportMode)?payload.invoiceExportMode:"customer";
       if(payload.actualsInterval!==undefined) settings.actualsInterval=["week","month"].includes(payload.actualsInterval)?payload.actualsInterval:"week";
       if(payload.fontSize!==undefined) settings.fontSize=clamp(payload.fontSize,6,18,settings.fontSize);
+      if(payload.displayPrecision!==undefined) settings.displayPrecision=["whole","standard","finance"].includes(payload.displayPrecision)?payload.displayPrecision:"standard";
       forecastChangeRequests=Array.isArray(payload.forecastChangeRequests)?payload.forecastChangeRequests:forecastChangeRequests;
       invoicePeriods=Array.isArray(payload.invoicePeriods)?payload.invoicePeriods.map(normaliseInvoicePeriod):invoicePeriods;
       if(payload.invoiceCodeConfigs && typeof payload.invoiceCodeConfigs==="object") invoiceCodeConfigs=payload.invoiceCodeConfigs;
@@ -1123,6 +1152,7 @@ function initialise(){
   const pctInput=document.getElementById("percentCompleteInput"); pctInput.addEventListener("input",()=>{ settings.percentComplete=clamp(pctInput.value,0,100,0); markDirty(); renderDashboard(); renderGovernance(); });
   const interval=document.getElementById("actualsIntervalToggle"); interval.addEventListener("change",()=>{ settings.actualsInterval=interval.value; markDirty(); renderActualsTable(); renderGovernance(); });
   const fontSlider=document.getElementById("fontSizeSlider"); fontSlider.addEventListener("input",()=>{ settings.fontSize=clamp(fontSlider.value,6,18,14); applyFontSize(); markDirty(); });
+  const precisionSelect=document.getElementById("displayPrecisionSelect"); if(precisionSelect){ precisionSelect.value=settings.displayPrecision||"standard"; precisionSelect.addEventListener("change",()=>{ settings.displayPrecision=["whole","standard","finance"].includes(precisionSelect.value)?precisionSelect.value:"standard"; addAudit("Display precision updated", settings.displayPrecision); markDirty(); renderAll(); }); }
   populateFirebaseInputs();
   initialiseFirebaseFromSavedConfig(true);
   document.getElementById("firebaseConnectBtn")?.addEventListener("click", async()=>{ try{ await initialiseFirebaseFromInputs(); }catch(e){} });
@@ -1164,7 +1194,7 @@ function resetToBlankApplicationState(reason="Application reset"){
   resources=[];
   baselineMeta={ source:"No forecast loaded", loadedAt:"", fileName:"No forecast loaded", weekCount:0, dataWeekCount:0 };
   forecastChangeRequests=[]; invoicePeriods=[]; invoiceCodeConfigs={}; changeLog=[];
-  settings={currentWeek:1,startDate:"",percentComplete:0,lastSaved:null,actualsInterval:"week",fontSize:14,numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer"};
+  settings={currentWeek:1,startDate:"",percentComplete:0,lastSaved:null,actualsInterval:"week",fontSize:14,displayPrecision:"standard",numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer"};
   weekDates={};
   setWeekHorizon(50,{allowBelowData:true,reason});
   syncCurrentWeekFromStartDate();
@@ -1315,8 +1345,8 @@ function renderActualsTable(){
   const periodHeaders=periods.map(p=>`<th class="week-cell" title="${esc(p.title)}">${esc(p.label)}</th>`).join("");
   const note=document.getElementById("actualsIntervalNote");
   if(note) note.innerHTML=isMonth?
-    `Monthly Reconciliation allocates every weekly total across calendar months using Monday–Friday working-day proportions. Boundary weeks are split between months, and this view is read-only to preserve the weekly source data. Switch back to Weekly Entry to edit actuals.` :
-    `Values can be decimals such as 0.5, 1, 2.5 or 5. Weeks crossing a month boundary are divided diagonally: the left value belongs to the earlier month and the right value to the later month, allocated proportionally across Monday–Friday. Weekly headings show W number plus the Monday start date when Dashboard Start Date is set. Weekly cells turn green when actuals match the locked forecast and amber when they differ. Warning icons flag missing rates or actuals outside forecast range. FI Upload dynamically locates Project, Employee/Supplier, Item Date, Days, Quantity, UOM and Location columns. For each Project + Employee/Supplier + Week group, the app first totals populated Days. If no populated Days values exist for the group, it totals Quantity rows where UOM contains Hours and converts hours using IND = 9 hours/day or ANZ = 8 hours/day. Location is used when provided or derived from Forecast/Actuals. Current horizon: W1-W${WEEK_COUNT}. <span class="keyboard-hint">Keyboard: <kbd>Enter</kbd> down <kbd>Tab</kbd> right <kbd>Shift+Tab</kbd> left <kbd>↑↓←→</kbd> move cells</span>`;
+    `Monthly Reconciliation uses FI Item Dates to allocate actual days to the calendar month in which they were booked. For manually entered weekly totals without daily source dates, boundary weeks use Monday–Friday working-day proportions as a fallback. This view is read-only to preserve the weekly source data.` :
+    `Values can be decimals such as 0.5, 1, 2.5 or 5. Weeks crossing a month boundary are divided diagonally: the left value belongs to the earlier month and the right value to the later month. FI-uploaded actuals use the source Item Dates, so two booked working days in June and three in July display as 2 / 3. Manual weekly entries without daily dates use Monday–Friday proportions as a fallback. Weekly headings show W number plus the Monday start date when Dashboard Start Date is set. Weekly cells turn green when actuals match the locked forecast and amber when they differ. Warning icons flag missing rates or actuals outside forecast range. FI Upload dynamically locates Project, Employee/Supplier, Item Date, Days, Quantity, UOM and Location columns. For each Project + Employee/Supplier + Week group, the app first totals populated Days. If no populated Days values exist for the group, it totals Quantity rows where UOM contains Hours and converts hours using IND = 9 hours/day or ANZ = 8 hours/day. Location is used when provided or derived from Forecast/Actuals. Current horizon: W1-W${WEEK_COUNT}. <span class="keyboard-hint">Keyboard: <kbd>Enter</kbd> down <kbd>Tab</kbd> right <kbd>Shift+Tab</kbd> left <kbd>↑↓←→</kbd> move cells</span>`;
   const disabled=!isForecastLoaded();
   ["saveActualsBtn","fiUploadBtn","addActualRowBtn","actualsFullscreenBtn","resetUnsavedBtn","exportCsvBtn"].forEach(id=>{ const btn=document.getElementById(id); if(btn) btn.disabled=disabled; });
   if(disabled){
@@ -1328,7 +1358,7 @@ function renderActualsTable(){
   const body=resources.map(r=>{
     const v=calculateRoleVariance(r,settings.currentWeek), remaining=Number(r.contractEffortDays||0)-v.actualDays, overrun=v.actualDays>v.forecastDays&&v.forecastDays>0;
     const periodCells=isMonth?periods.map(p=>`<td class="num week-cell month-readonly" title="${esc(p.title)}">${num(sumMonthAllocated(r,"actualByWeek",p),2)}</td>`).join(""):
-      periods.map(p=>{ const w=Number(p.key), val=Number(r.actualByWeek[String(w)]||0), status=actualCellStatusClass(r,w,val), forecast=Number(r.forecastByWeek?.[String(w)]||0), warn=actualCellWarningMessage(r,w,val), label=actualWeekHeaderLabel(w), lock=isActualCellLockedByInvoice(r,w); const lockText=invoiceLockTooltip(lock); const cellTitle=lockText || `${label} · Forecast ${num(forecast,1)} · Actual ${num(val,1)}`; const split=isSplitWeek(w); const splitHtml=split?splitWeekDisplay(val,w):""; return `<td class="week-cell actual-cell ${status} ${warn?"issue":""} ${lock?"invoice-locked":""} ${split?"split-week-cell":""}" title="${esc(cellTitle)}"><input class="actual-input ${val>7?"warn":""} ${status}" type="number" min="0" step="0.25" value="${val||""}" data-resource="${r.id}" data-week="${w}" aria-label="${esc(getActualName(r)||r.role||"Resource")} ${esc(label)} actual days" ${lock?"readonly disabled data-invoice-locked=\"true\"":""}>${splitHtml}${validationIcon(warn)}${lock?`<span class="invoice-lock-icon" title="${esc(lockText)}">🔒</span>`:""}</td>`; }).join("");
+      periods.map(p=>{ const w=Number(p.key), val=Number(r.actualByWeek[String(w)]||0), status=actualCellStatusClass(r,w,val), forecast=Number(r.forecastByWeek?.[String(w)]||0), warn=actualCellWarningMessage(r,w,val), label=actualWeekHeaderLabel(w), lock=isActualCellLockedByInvoice(r,w); const lockText=invoiceLockTooltip(lock); const cellTitle=lockText || `${label} · Forecast ${num(forecast,1)} · Actual ${num(val,1)}`; const split=isSplitWeek(w); const splitHtml=split?splitWeekDisplay(val,w,r):""; return `<td class="week-cell actual-cell ${status} ${warn?"issue":""} ${lock?"invoice-locked":""} ${split?"split-week-cell":""}" title="${esc(cellTitle)}"><input class="actual-input ${val>7?"warn":""} ${status}" type="number" min="0" step="0.25" value="${val||""}" data-resource="${r.id}" data-week="${w}" aria-label="${esc(getActualName(r)||r.role||"Resource")} ${esc(label)} actual days" ${lock?"readonly disabled data-invoice-locked=\"true\"":""}>${splitHtml}${validationIcon(warn)}${lock?`<span class="invoice-lock-icon" title="${esc(lockText)}">🔒</span>`:""}</td>`; }).join("");
     const nameCell=`<input class="actual-name-input" type="text" value="${esc(getActualName(r))}" data-resource="${r.id}" aria-label="Actual name for ${esc(r.role||"resource")}">`;
     const sourceLabel=r.actualOnly?`<span class="badge blue">Actual only</span>`:`<span class="badge locked">Forecast copy</span>`;
     const deleteButton=r.actualOnly?`<button class="action danger row-action delete-row-btn" data-resource="${r.id}" title="Delete this actual-only row">Delete</button>`:"";
@@ -1343,7 +1373,7 @@ function renderActualsTable(){
     return `<tr data-row-id="${r.id}" class="${overrun?"overrun":""} ${r.actualOnly?"actual-only":""}"><td class="sticky c0">${streamCell}</td><td class="sticky c1">${roleCell}</td><td class="sticky c2">${codeCell}</td><td class="sticky c3">${nameCell}</td><td class="readonly-cell">${locationCell}</td><td class="num ${r.actualOnly?"":"readonly-cell"}">${rateCell}</td><td class="num ${r.actualOnly?"":"readonly-cell"}">${contractDaysCell}</td><td class="num readonly-cell actual-days-to-date">${num(v.actualDays,1)}</td><td class="num readonly-cell actual-cost-to-date">${currency(v.actualCost)}</td><td class="num readonly-cell remaining-days">${num(remaining,1)}</td><td>${sourceLabel} ${deleteButton}</td>${periodCells}</tr>`;
   }).join("");
   const m=metrics();
-  const footerCells=periods.map(p=>{ const total=isMonth?resources.reduce((s,r)=>s+sumMonthAllocated(r,"actualByWeek",p),0):resources.reduce((s,r)=>s+sumWeeks(r,"actualByWeek",p.weeks),0); const week=Number(p.key)||0; const split=!isMonth&&isSplitWeek(week); return `<td class="num week-cell actual-period-total ${split?"split-week-cell":""}" data-period-total="${esc(p.key)}">${split?splitWeekDisplay(total,week):num(total,isMonth?2:1)}</td>`; }).join("");
+  const footerCells=periods.map(p=>{ const total=isMonth?resources.reduce((s,r)=>s+sumMonthAllocated(r,"actualByWeek",p),0):resources.reduce((s,r)=>s+sumWeeks(r,"actualByWeek",p.weeks),0); const week=Number(p.key)||0; const split=!isMonth&&isSplitWeek(week); return `<td class="num week-cell actual-period-total ${split?"split-week-cell":""}" data-period-total="${esc(p.key)}">${split?splitWeekTotalDisplay(week):num(total,isMonth?2:1)}</td>`; }).join("");
   document.getElementById("actualsTable").innerHTML=`<thead><tr><th class="sticky c0">Stream</th><th class="sticky c1">Role</th><th class="sticky c2">Code</th><th class="sticky c3">Name</th><th>Location</th><th class="num">Day Rate</th><th class="num">Contract Days</th><th class="num">Actual Days to Date</th><th class="num">Actual Cost to Date</th><th class="num">Remaining Contract Days</th><th>Source / Action</th>${periodHeaders}</tr></thead><tbody>${body}</tbody><tfoot><tr><td class="sticky c0">TOTAL</td><td class="sticky c1"></td><td class="sticky c2"></td><td class="sticky c3"></td><td></td><td></td><td class="num actuals-total-contract">${num(calculateForecastDaysTotal(),1)}</td><td class="num actuals-total-days">${num(m.actualDaysToDate,1)}</td><td class="num actuals-total-cost">${currency(m.actualCostToDate)}</td><td class="num actuals-total-remaining">${num(m.remainingForecastDays,1)}</td><td></td>${footerCells}</tr></tfoot>`;
   document.querySelectorAll(".actual-input").forEach(input=>{ input.addEventListener("input",handleActualInput); input.addEventListener("keydown",handleActualsGridKeyDown); });
   document.querySelectorAll(".actual-name-input").forEach(input=>input.addEventListener("input",handleActualNameInput));
@@ -1357,9 +1387,9 @@ function updateSplitActualCell(resource,week){
   if(!isSplitWeek(week)) return;
   const input=document.querySelector(`.actual-input[data-resource="${resource.id}"][data-week="${week}"]`); const cell=input?.closest("td"); if(!cell) return;
   cell.querySelectorAll(".split-left,.split-right").forEach(el=>el.remove());
-  input.insertAdjacentHTML("afterend",splitWeekDisplay(Number(resource.actualByWeek[String(week)]||0),week));
+  input.insertAdjacentHTML("afterend",splitWeekDisplay(Number(resource.actualByWeek[String(week)]||0),week,resource));
 }
-function handleActualInput(e){ const input=e.target, resource=resources.find(r=>r.id===input.dataset.resource); if(!resource) return; const week=Number(input.dataset.week); const lock=isActualCellLockedByInvoice(resource,week); if(lock){ input.value=Number(resource.actualByWeek[String(week)]||0)||""; showMessage("actualsMessage",`Actuals for code ${resource.code} in W${week} are locked by ${lock.invoiceLabel||"a saved invoice"}. Delete or reverse the invoice before changing these values.`, "warn"); return; } const value=weekValue(input.value); resource.actualByWeek[String(week)]=value; input.value=value||""; applyActualCellStatus(input,resource,week,value); applyActualCellWarning(input,resource,week,value); updateSplitActualCell(resource,week); input.classList.toggle("warn",value>7); markDirty(); updateActualRow(resource); updateRateWarningIcon(resource); updateActualFooter(); renderDashboard(); renderGovernance(); renderInvoices(); }
+function handleActualInput(e){ const input=e.target, resource=resources.find(r=>r.id===input.dataset.resource); if(!resource) return; const week=Number(input.dataset.week); const lock=isActualCellLockedByInvoice(resource,week); if(lock){ input.value=Number(resource.actualByWeek[String(week)]||0)||""; showMessage("actualsMessage",`Actuals for code ${resource.code} in W${week} are locked by ${lock.invoiceLabel||"a saved invoice"}. Delete or reverse the invoice before changing these values.`, "warn"); return; } const value=weekValue(input.value); resource.actualByWeek[String(week)]=value; resource.actualMonthSplitByWeek=resource.actualMonthSplitByWeek||{}; delete resource.actualMonthSplitByWeek[String(week)]; input.value=value||""; applyActualCellStatus(input,resource,week,value); applyActualCellWarning(input,resource,week,value); updateSplitActualCell(resource,week); input.classList.toggle("warn",value>7); markDirty(); updateActualRow(resource); updateRateWarningIcon(resource); updateActualFooter(); renderDashboard(); renderGovernance(); renderInvoices(); }
 function handleActualsGridKeyDown(e){
   if(settings.actualsInterval==="month") return;
   const key=e.key;
@@ -1427,7 +1457,7 @@ function updateActualFooter(){
   document.querySelector(".actuals-total-cost")&&(document.querySelector(".actuals-total-cost").textContent=currency(m.actualCostToDate));
   document.querySelector(".actuals-total-remaining")&&(document.querySelector(".actuals-total-remaining").textContent=num(m.remainingForecastDays,1));
   const periods=settings.actualsInterval==="month"?monthBuckets():weeks().map(w=>({key:String(w),weeks:[w]}));
-  document.querySelectorAll(".actual-period-total").forEach((cell,idx)=>{ const p=periods[idx]; if(!p) return; const total=settings.actualsInterval==="month"?resources.reduce((s,r)=>s+sumMonthAllocated(r,"actualByWeek",p),0):resources.reduce((s,r)=>s+sumWeeks(r,"actualByWeek",p.weeks),0); const week=Number(p.key)||0; if(settings.actualsInterval==="week"&&isSplitWeek(week)){ cell.classList.add("split-week-cell"); cell.innerHTML=splitWeekDisplay(total,week); } else { cell.classList.remove("split-week-cell"); cell.textContent=num(total,settings.actualsInterval==="month"?2:1); } });
+  document.querySelectorAll(".actual-period-total").forEach((cell,idx)=>{ const p=periods[idx]; if(!p) return; const total=settings.actualsInterval==="month"?resources.reduce((s,r)=>s+sumMonthAllocated(r,"actualByWeek",p),0):resources.reduce((s,r)=>s+sumWeeks(r,"actualByWeek",p.weeks),0); const week=Number(p.key)||0; if(settings.actualsInterval==="week"&&isSplitWeek(week)){ cell.classList.add("split-week-cell"); cell.innerHTML=splitWeekTotalDisplay(week); } else { cell.classList.remove("split-week-cell"); cell.textContent=num(total,settings.actualsInterval==="month"?2:1); } });
   renderMonthlyReconciliationStrip();
   renderGovernance();
   renderInvoices();
@@ -2074,6 +2104,8 @@ function applyFontSize(){
   const fs=document.getElementById("fontSizeSlider"), fv=document.getElementById("fontSizeValue");
   if(fs) fs.value=settings.fontSize||14;
   if(fv) fv.textContent=`${settings.fontSize||14}px`;
+  const dp=document.getElementById("displayPrecisionSelect");
+  if(dp) dp.value=settings.displayPrecision||"standard";
 }
 function addAudit(action, detail){
   changeLog.unshift({ id:`audit-${Date.now()}-${Math.random().toString(36).slice(2,7)}`, at:new Date().toISOString(), action, detail:String(detail||"") });
@@ -2092,16 +2124,41 @@ function weekWorkingDayParts(week){
   }
   return [...map.values()];
 }
-function splitWeekAllocation(value,week){
-  const total=Number(value)||0; const parts=weekWorkingDayParts(week);
-  if(parts.length<2) return parts.map(p=>({...p,value:total}));
-  const denominator=parts.reduce((s,p)=>s+p.count,0)||5;
+function splitWeekAllocation(value,week,resource=null){
+  const total=Number(value)||0;
+  const parts=weekWorkingDayParts(week);
+  if(parts.length<2) return parts.map(p=>({...p,value:total,source:"single-month"}));
+
+  // FI Upload preserves the actual day/date distribution for boundary weeks.
+  // This is the authoritative split because Item Date identifies the month in which time was booked.
+  const exact=resource?.actualMonthSplitByWeek?.[String(week)];
+  if(exact && typeof exact==="object"){
+    const exactParts=parts.map(p=>({...p,value:weekValue(exact[p.key]||0),source:"actual-dates"}));
+    const exactTotal=exactParts.reduce((sum,p)=>sum+p.value,0);
+    // Keep the stored weekly total authoritative. Any rounding difference is applied to the last month.
+    if(exactParts.length && Math.abs(exactTotal-total)>0.001){
+      exactParts[exactParts.length-1].value=weekValue(exactParts[exactParts.length-1].value+(total-exactTotal));
+    }
+    return exactParts;
+  }
+
+  // Manual weekly entry has no underlying dates. Use Monday-Friday working-day proportions as fallback.
+  const denominator=parts.reduce((sum,p)=>sum+p.count,0)||5;
   let allocated=0;
   return parts.map((p,idx)=>{
     const raw=idx===parts.length-1 ? total-allocated : Math.round((total*p.count/denominator)*100)/100;
     allocated+=raw;
-    return {...p,value:Math.round(raw*100)/100};
+    return {...p,value:Math.round(raw*100)/100,source:"working-day-fallback"};
   });
+}
+function aggregateSplitWeekAllocation(week){
+  const parts=weekWorkingDayParts(week);
+  return parts.map(p=>({...p,value:resources.reduce((sum,r)=>{
+    const total=Number(r.actualByWeek?.[String(week)]||0);
+    const split=splitWeekAllocation(total,week,r);
+    const match=split.find(x=>x.key===p.key);
+    return sum+Number(match?.value||0);
+  },0)}));
 }
 function isSplitWeek(week){ return weekWorkingDayParts(week).length>1; }
 function monthBuckets(){
@@ -2120,12 +2177,25 @@ function monthBuckets(){
   return buckets;
 }
 function sumMonthAllocated(resource,field,bucket){
-  return (bucket?.allocations||[]).reduce((sum,a)=>sum+(Number(resource[field]?.[String(a.week)]||0)*Number(a.fraction||0)),0);
+  return (bucket?.allocations||[]).reduce((sum,a)=>{
+    const weekly=Number(resource[field]?.[String(a.week)]||0);
+    if(field==="actualByWeek"){
+      const exact=resource.actualMonthSplitByWeek?.[String(a.week)];
+      if(exact && Object.prototype.hasOwnProperty.call(exact,bucket.key)) return sum+Number(exact[bucket.key]||0);
+    }
+    return sum+(weekly*Number(a.fraction||0));
+  },0);
 }
-function splitWeekDisplay(value,week){
-  const parts=splitWeekAllocation(value,week);
+function splitWeekDisplay(value,week,resource=null){
+  const parts=splitWeekAllocation(value,week,resource);
   if(parts.length<2) return "";
-  return `<span class="split-left" title="${esc(parts[0].title)}">${num(parts[0].value,2)}</span><span class="split-right" title="${esc(parts[1].title)}">${num(parts[1].value,2)}</span>`;
+  const source=parts.some(p=>p.source==="actual-dates") ? "Split from FI Item Dates" : "Split by Monday-Friday working-day proportions (manual-entry fallback)";
+  return `<span class="split-left" title="${esc(parts[0].title)} · ${esc(source)}">${num(parts[0].value,2)}</span><span class="split-right" title="${esc(parts[1].title)} · ${esc(source)}">${num(parts[1].value,2)}</span>`;
+}
+function splitWeekTotalDisplay(week){
+  const parts=aggregateSplitWeekAllocation(week);
+  if(parts.length<2) return "";
+  return `<span class="split-left" title="${esc(parts[0].title)} total">${num(parts[0].value,2)}</span><span class="split-right" title="${esc(parts[1].title)} total">${num(parts[1].value,2)}</span>`;
 }
 function renderMonthlyReconciliationStrip(){
   const host=document.getElementById("monthlyReconciliationStrip"); if(!host) return;
@@ -2410,12 +2480,15 @@ function applyFiActuals(payloadRows){
     maxWeek=Math.max(maxWeek,week);
     const location=normaliseEmployeeLocation(row.location);
     const key=`${normaliseCompare(code)}||${normaliseCompare(name)}||${week}`;
-    const current=grouped.get(key)||{code,name,week,daysTotal:0,daysPopulatedCount:0,hoursTotal:0,location,sourceRows:0};
+    const monthKey=String(itemDate).slice(0,7);
+    const current=grouped.get(key)||{code,name,week,daysTotal:0,daysPopulatedCount:0,hoursTotal:0,location,sourceRows:0,daysByMonth:{},hoursByMonth:{}};
     if(daysPopulated){
       current.daysTotal+=daysValue;
       current.daysPopulatedCount++;
+      current.daysByMonth[monthKey]=Number(current.daysByMonth[monthKey]||0)+daysValue;
     }
     current.hoursTotal+=quantityHours;
+    if(quantityHours>0) current.hoursByMonth[monthKey]=Number(current.hoursByMonth[monthKey]||0)+quantityHours;
     current.location=current.location || location;
     current.sourceRows++;
     grouped.set(key,current);
@@ -2426,8 +2499,10 @@ function applyFiActuals(payloadRows){
   grouped.forEach(g=>{
     let actualDays=0;
     let calculationSource="";
+    let actualMonthSplit={};
     if(g.daysPopulatedCount>0){
       actualDays=g.daysTotal;
+      actualMonthSplit=Object.fromEntries(Object.entries(g.daysByMonth||{}).map(([key,value])=>[key,weekValue(value)]));
       calculationSource="Days";
       groupsUsingDays++;
       if(g.hoursTotal>0){
@@ -2439,7 +2514,9 @@ function applyFiActuals(payloadRows){
       }
     }else if(g.hoursTotal>0){
       if(!g.location){ skippedInvalidLocation++; skippedRows+=g.sourceRows; return; }
-      actualDays=g.hoursTotal/hoursPerDayForLocation(g.location);
+      const divisor=hoursPerDayForLocation(g.location);
+      actualDays=g.hoursTotal/divisor;
+      actualMonthSplit=Object.fromEntries(Object.entries(g.hoursByMonth||{}).map(([key,value])=>[key,weekValue(Number(value||0)/divisor)]));
       calculationSource="Hours";
       groupsUsingHours++;
     }
@@ -2458,6 +2535,8 @@ function applyFiActuals(payloadRows){
     const lock=isActualCellLockedByInvoice(resource,g.week);
     if(lock){ lockedCellsSkipped++; skippedRows+=g.sourceRows; return; }
     resource.actualByWeek[String(g.week)]=weekValue(actualDays);
+    resource.actualMonthSplitByWeek=resource.actualMonthSplitByWeek||{};
+    resource.actualMonthSplitByWeek[String(g.week)]=actualMonthSplit;
     updatedCells++;
     totalDaysImported+=actualDays;
   });
@@ -2481,7 +2560,7 @@ async function loadForecastSpreadsheet(file){
       weekCount:loadedWeekCount,
       columnWeekCount:parsed.columnWeekCount||loadedWeekCount,
       dataWeekCount:parsed.dataWeekCount||loadedWeekCount,
-      format:"GWF Forecast v0.2/v3.9"
+      format:"GWF Forecast v0.2/v3.11"
     };
     resources=createResourcesFromBase();
     syncCurrentWeekFromStartDate();

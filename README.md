@@ -1,13 +1,10 @@
-# Financial Tracker v3.11 Multi-Project
+# Financial Tracker v3.14 Multi-Project
 
-Replace the existing `index.html` in the FTracker GitHub repository with this version.
+Replace the existing `index.html` in the FTracker GitHub repository with this file and redeploy GitHub Pages.
 
-## Display Precision
-
-Use the **Days** selector in the application header:
-
-- **Whole days**: rounds displayed day values to whole numbers.
-- **Standard**: displays only necessary decimal places.
-- **Finance (2dp)**: displays day values using two decimal places.
-
-This setting changes presentation only. Stored forecast, actual and invoice values retain their original precision.
+Enhancements:
+- Session-safe print/report windows.
+- Invoice calendar for weeks or months.
+- Partial-month invoice warnings.
+- Automatic readable invoice period names.
+- Evidence snapshot attached to each saved invoice and included in saved-invoice PDFs.

@@ -136,6 +136,25 @@ canvas { font-size: var(--app-font-size) !important; }
 .monthly-reconciliation-detail{margin-top:12px;overflow:auto;border-top:1px solid var(--line);padding-top:12px}.monthly-reconciliation-detail table{min-width:100%;width:max-content;border-collapse:collapse}.monthly-reconciliation-detail th,.monthly-reconciliation-detail td{padding:7px 10px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);white-space:nowrap;text-align:right}.monthly-reconciliation-detail th:first-child,.monthly-reconciliation-detail td:first-child{text-align:left;position:sticky;left:0;background:#f8fafc;z-index:2;font-weight:850}.monthly-reconciliation-detail thead th{background:#eef3fb;color:var(--brand-dark);font-weight:850}.monthly-reconciliation-detail tfoot td{background:#f8fafc;font-weight:900}
 .month-split-note{display:inline-flex;gap:8px;align-items:center;padding:5px 8px;border-radius:999px;background:#f8fafc;border:1px solid var(--line);font-size:.9em;font-weight:750}
 .month-split-swatch{width:28px;height:20px;border:1px solid #94a3b8;border-radius:4px;background:linear-gradient(to bottom,#dbeafe 0 47%,#fff 47% 53%,#ccfbf1 53% 100%)}
+
+/* v3.14 invoice period selectors */
+.invoice-period-summary{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.invoice-period-unavailable{color:#64748b;font-style:italic}.invoice-period-select-note{font-size:calc(var(--app-font-size)*.78);color:var(--muted);margin-top:5px}
+
+/* ===== v3.14 invoice calendar, period naming and evidence pack ===== */
+.invoice-calendar-card{margin-top:16px;border:1px solid #d9e3f0;border-radius:16px;background:#fff;padding:16px;box-shadow:0 8px 24px rgba(31,55,88,.06)}
+.invoice-calendar-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:12px}
+.invoice-calendar-head h3{margin:0 0 4px}.invoice-calendar-legend{display:flex;gap:10px;flex-wrap:wrap;font-size:.82em;color:#52647d}
+.invoice-calendar-legend span{display:inline-flex;align-items:center;gap:5px}.invoice-calendar-legend i{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid #c9d4e3}
+.invoice-calendar-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:7px}
+.invoice-calendar-unit{border:1px solid #d7e0eb;border-radius:10px;padding:8px 6px;text-align:center;background:#f8fafc;min-height:52px;display:flex;flex-direction:column;justify-content:center;gap:3px}
+.invoice-calendar-unit .unit-label{font-weight:800;font-size:.82em}.invoice-calendar-unit .unit-state{font-size:.68em;color:#62748e;text-transform:uppercase;letter-spacing:.04em}
+.invoice-calendar-unit.available{background:#eefbf4;border-color:#9ad8b5}.invoice-calendar-unit.invoiced{background:#eef2f8;border-color:#b9c4d4;color:#68758a}.invoice-calendar-unit.selected{background:#e9f0ff;border-color:#2f63d8;box-shadow:0 0 0 2px rgba(47,99,216,.12)}
+.invoice-calendar-unit.partial{background:#fff6e4;border-color:#efc068}.invoice-calendar-unit.locked{background:#f3f4f6;border-color:#c7ccd5}
+.partial-month-warning{margin-top:12px;padding:11px 13px;border-radius:10px;background:#fff7e6;border:1px solid #f2c66f;color:#7a4b00;font-size:.86em;display:none}.partial-month-warning.show{display:block}
+.period-name-preview{margin-top:10px;padding:10px 12px;border-radius:10px;background:#f3f7ff;border:1px solid #cad8f6;font-size:.88em}.period-name-preview strong{color:#173b7a}
+.evidence-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:#edf7f0;color:#17603a;padding:4px 8px;font-size:.75em;font-weight:700}
+.evidence-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:12px 0}.evidence-summary .evidence-item{border:1px solid #dbe3ef;border-radius:10px;padding:10px;background:#fafcff}.evidence-summary .label{font-size:.72em;text-transform:uppercase;color:#63748b}.evidence-summary .value{font-weight:800;margin-top:3px}
+
 </style>
 </head>
 <body>
@@ -285,7 +304,9 @@ canvas { font-size: var(--app-font-size) !important; }
     <div class="panel-header">
       <div><h2>Invoices</h2><p>Create governed code-specific invoice periods, prevent duplicate billing and print customer-safe proposed invoices.</p></div>
       <div class="controls no-print">
-        <label class="control wider-control"><span>Invoice Period End</span><select id="invoiceEndWeekInput"></select></label>
+        <label class="control wider-control"><span>Invoice Period</span><select id="invoicePeriodTypeInput"><option value="week">Weeks</option><option value="month">Months</option></select></label>
+        <label class="control wider-control"><span>Invoice Start</span><select id="invoiceStartPeriodInput"></select></label>
+        <label class="control wider-control"><span>Invoice End</span><select id="invoiceEndPeriodInput"></select></label>
         <label class="control wider-control"><span>Project Code</span><select id="invoiceCodeInput"></select></label>
         <label class="control wider-control"><span>Invoice No. Format</span><input id="invoiceNumberFormatInput" type="text" placeholder="AR-{CODE}-{SEQ}"></label>
         <label class="control wider-control"><span>PO Value</span><input id="invoicePoValueInput" type="number" min="0" step="0.01" placeholder="0.00"></label>
@@ -298,10 +319,10 @@ canvas { font-size: var(--app-font-size) !important; }
       <div class="invoice-governance-grid">
         <div class="invoice-controls-card">
           <h3>Draft invoice period</h3>
-          <p class="small-note">The next invoice for the selected project code starts from the week after the latest saved invoice period for that same code. From/To week ranges are locked once saved to prevent duplicate invoicing.</p>
+          <p class="small-note">Choose either weekly or monthly invoicing, then select an available start and end period. Periods already included in a saved invoice for the selected code are removed from the selectors.</p>
           <div class="toolbar-row">
-            <span class="badge blue">From <strong id="invoiceStartWeekLabel">W1</strong></span>
-            <span class="badge locked">To <strong id="invoiceEndWeekLabel">W7</strong></span>
+            <span class="badge blue">From <strong id="invoiceStartWeekLabel">—</strong></span>
+            <span class="badge locked">To <strong id="invoiceEndWeekLabel">—</strong></span>
             <span class="badge amber" id="invoiceDuplicateGuardLabel">Duplicate guard active</span>
           </div>
         </div>
@@ -313,6 +334,15 @@ canvas { font-size: var(--app-font-size) !important; }
           <h3>Customer-safe export rule</h3>
           <p class="invoice-note">Customer-safe PDFs aggregate supporting detail by stream / role / code and hide individual names and day rates. Use Internal detail only for internal review.</p>
         </div>
+      </div>
+      <div class="invoice-calendar-card">
+        <div class="invoice-calendar-head">
+          <div><h3>Invoice calendar</h3><p class="small-note">Visual status for the selected project code. Previously invoiced periods are unavailable; the current draft selection is highlighted.</p></div>
+          <div class="invoice-calendar-legend"><span><i style="background:#eefbf4;border-color:#9ad8b5"></i>Available</span><span><i style="background:#e9f0ff;border-color:#2f63d8"></i>Selected</span><span><i style="background:#eef2f8;border-color:#b9c4d4"></i>Invoiced</span><span><i style="background:#fff6e4;border-color:#efc068"></i>Partial month</span></div>
+        </div>
+        <div id="invoiceCalendarGrid" class="invoice-calendar-grid"></div>
+        <div id="invoicePartialMonthWarning" class="partial-month-warning"></div>
+        <div id="invoicePeriodNamePreview" class="period-name-preview">Invoice period name: <strong>—</strong></div>
       </div>
       <div class="small-note">Invoice Amount (Net) is calculated for the selected project code as actual days in the invoice period multiplied by each resource day rate. Variance notes compare actual days to the locked Forecast for the same code and period.</div>
       <h3>Saved invoice register</h3>
@@ -398,7 +428,7 @@ const baseResources = [];
 let forecastBaseline = [];
 let baselineMeta = { source: "No forecast loaded", loadedAt: "", fileName: "No forecast loaded", weekCount: 0, dataWeekCount: 0 };
 let resources = [];
-let settings = { currentWeek: 1, startDate: "", percentComplete: 0, lastSaved: null, actualsInterval: "week", fontSize: 14, displayPrecision: "standard", numberOfWeeks: WEEK_COUNT, invoiceEndWeek: 1, invoiceCode: "", invoiceExportMode: "customer" };
+let settings = { currentWeek: 1, startDate: "", percentComplete: 0, lastSaved: null, actualsInterval: "week", fontSize: 14, displayPrecision: "standard", numberOfWeeks: WEEK_COUNT, invoiceEndWeek: 1, invoiceCode: "", invoiceExportMode: "customer", invoicePeriodType: "week", invoiceStartValue: "", invoiceEndValue: "" };
 const invoiceMappings = [];
 let changeLog = [];
 let forecastChangeRequests = [];
@@ -712,6 +742,9 @@ function buildStatePayload(){
     startDate:settings.startDate,
     percentComplete:settings.percentComplete,
     invoiceEndWeek:settings.invoiceEndWeek,
+    invoicePeriodType:settings.invoicePeriodType,
+    invoiceStartValue:settings.invoiceStartValue,
+    invoiceEndValue:settings.invoiceEndValue,
     invoiceCode:settings.invoiceCode,
     invoiceExportMode:settings.invoiceExportMode,
     actualsInterval:settings.actualsInterval,
@@ -840,6 +873,9 @@ function applyStatePayload(payload){
   settings.percentComplete=clamp(payload.percentComplete,0,100,0);
   if(payload.invoiceEndWeek!==undefined) settings.invoiceEndWeek=clamp(payload.invoiceEndWeek,1,WEEK_COUNT,settings.invoiceEndWeek||settings.currentWeek);
   else settings.invoiceEndWeek=clamp(settings.invoiceEndWeek||settings.currentWeek,1,WEEK_COUNT,settings.currentWeek);
+  settings.invoicePeriodType=["week","month"].includes(payload.invoicePeriodType)?payload.invoicePeriodType:"week";
+  settings.invoiceStartValue=payload.invoiceStartValue!==undefined?String(payload.invoiceStartValue||""):"";
+  settings.invoiceEndValue=payload.invoiceEndValue!==undefined?String(payload.invoiceEndValue||""):"";
   settings.invoiceCode=payload.invoiceCode!==undefined?String(payload.invoiceCode||""):String(settings.invoiceCode||"");
   settings.invoiceExportMode=["customer","internal"].includes(payload.invoiceExportMode)?payload.invoiceExportMode:"customer";
   settings.actualsInterval=["week","month"].includes(payload.actualsInterval)?payload.actualsInterval:"week";
@@ -918,6 +954,9 @@ function exportActualsJson(){
     startDate:settings.startDate,
     percentComplete:settings.percentComplete,
     invoiceEndWeek:settings.invoiceEndWeek,
+    invoicePeriodType:settings.invoicePeriodType,
+    invoiceStartValue:settings.invoiceStartValue,
+    invoiceEndValue:settings.invoiceEndValue,
     invoiceCode:settings.invoiceCode,
     invoiceExportMode:settings.invoiceExportMode,
     actualsInterval:settings.actualsInterval,
@@ -1486,13 +1525,18 @@ function normaliseInvoicePeriod(p){
     code,
     fromWeek,
     toWeek,
+    periodType:["week","month"].includes(p?.periodType)?p.periodType:"week",
+    fromPeriodLabel:p?.fromPeriodLabel||`W${fromWeek}`,
+    toPeriodLabel:p?.toPeriodLabel||`W${toWeek}`,
     status:INVOICE_STATUSES.includes(p?.status)?p.status:"Draft",
     createdAt:p?.createdAt||new Date().toISOString(),
     updatedAt:p?.updatedAt||p?.createdAt||new Date().toISOString(),
     lines:filteredLines,
     totalAmount:filteredLines.length?lineTotals.amount:(Number(p?.totalAmount)||0),
     totalDays:filteredLines.length?lineTotals.days:(Number(p?.totalDays)||0),
-    varianceNote:p?.varianceNote||varianceText(lineTotals.days,lineTotals.forecastDays)||""
+    varianceNote:p?.varianceNote||varianceText(lineTotals.days,lineTotals.forecastDays)||"",
+    periodName:p?.periodName||p?.invoicePeriodName||"",
+    evidencePack:p?.evidencePack&&typeof p.evidencePack==="object"?p.evidencePack:null
   };
 }
 function lastSavedInvoiceEndWeek(code=settings.invoiceCode){
@@ -1618,6 +1662,83 @@ function calculateInvoiceRows(fromWeek=invoicePeriodStartWeek(),toWeek=invoicePe
 function invoiceTotals(lines){
   return { amount:(lines||[]).reduce((s,r)=>s+(Number(r.amount)||0),0), days:(lines||[]).reduce((s,r)=>s+(Number(r.days)||0),0), forecastDays:(lines||[]).reduce((s,r)=>s+(Number(r.forecastDays)||0),0) };
 }
+
+function weekDateRange(week){
+  const start=weekMondayDate(week); if(!start) return null;
+  const end=new Date(start); end.setDate(end.getDate()+6);
+  return {start,end};
+}
+function monthYearLabelFromDate(date){ return date?date.toLocaleDateString("en-GB",{month:"long",year:"numeric"}):""; }
+function shortMonthYear(date){ return date?date.toLocaleDateString("en-GB",{month:"short",year:"numeric"}):""; }
+function automaticInvoicePeriodName(range=selectedInvoiceUnitRange()){
+  if(!range?.start) return "—";
+  if(range.type==="month"){
+    const startDef=range.start, endDef=range.end||range.start;
+    const startDate=weekMondayDate(startDef.fromWeek), endWeekRange=weekDateRange(endDef.toWeek), endDate=endWeekRange?.end||weekMondayDate(endDef.toWeek);
+    if(!startDate||!endDate) return `${startDef.label}${endDef.value!==startDef.value?`–${endDef.label}`:""}`;
+    const sameMonth=startDate.getMonth()===endDate.getMonth()&&startDate.getFullYear()===endDate.getFullYear();
+    const sameYear=startDate.getFullYear()===endDate.getFullYear();
+    if(sameMonth) return monthYearLabelFromDate(startDate);
+    if(sameYear) return `${startDate.toLocaleDateString("en-GB",{month:"long"})}–${endDate.toLocaleDateString("en-GB",{month:"long",year:"numeric"})}`;
+    return `${monthYearLabelFromDate(startDate)}–${monthYearLabelFromDate(endDate)}`;
+  }
+  if(range.fromWeek===range.toWeek) return invoiceWeekSingleDateLabel(range.fromWeek);
+  return `W${range.fromWeek}–W${range.toWeek}`;
+}
+function calendarUnitState(unit,range,occupied){
+  const selected=range?.start&&unit.weeks.some(w=>w>=range.fromWeek&&w<=range.toWeek);
+  const invoiced=unit.weeks.some(w=>occupied.has(w));
+  if(selected) return "selected";
+  if(invoiced) return settings.invoicePeriodType==="month"&&unit.weeks.some(w=>!occupied.has(w))?"partial":"invoiced";
+  return "available";
+}
+function partialMonthWarnings(range=selectedInvoiceUnitRange()){
+  const warnings=[];
+  if(!range?.start||range.type!=="month") return warnings;
+  const occupied=invoicedWeekSet(settings.invoiceCode);
+  const selectedWeeks=[]; for(let w=range.fromWeek;w<=range.toWeek;w++) selectedWeeks.push(w);
+  const boundaryWeeks=selectedWeeks.filter(w=>isSplitWeek(w));
+  if(boundaryWeeks.length) warnings.push(`The selected monthly period contains boundary week${boundaryWeeks.length>1?"s":""} ${boundaryWeeks.map(w=>`W${w}`).join(", ")}. Actuals in those weeks are allocated across two calendar months using source Item Dates or working-day fallback.`);
+  const monthUnits=invoiceUnitDefinitions("month");
+  monthUnits.filter(u=>u.value>=range.start.value&&u.value<=range.end.value).forEach(u=>{
+    const invoiced=u.weeks.filter(w=>occupied.has(w));
+    const free=u.weeks.filter(w=>!occupied.has(w));
+    if(invoiced.length&&free.length) warnings.push(`${u.label} is partially consumed by an earlier weekly invoice (${invoiced.map(w=>`W${w}`).join(", ")}). The remaining weeks cannot be represented as a complete monthly invoice.`);
+  });
+  return [...new Set(warnings)];
+}
+function renderInvoiceCalendar(){
+  const grid=document.getElementById("invoiceCalendarGrid"), warn=document.getElementById("invoicePartialMonthWarning"), namePreview=document.getElementById("invoicePeriodNamePreview");
+  if(!grid) return;
+  const type=settings.invoicePeriodType||"week", all=invoiceUnitDefinitions(type), occupied=invoicedWeekSet(settings.invoiceCode), range=selectedInvoiceUnitRange();
+  grid.innerHTML=all.map(u=>{const state=calendarUnitState(u,range,occupied); const stateText=state==="selected"?"Draft":state==="invoiced"?"Invoiced":state==="partial"?"Partial":"Available"; return `<div class="invoice-calendar-unit ${state}"><div class="unit-label">${esc(u.label)}</div><div class="unit-state">${stateText}</div></div>`;}).join("");
+  const warnings=partialMonthWarnings(range);
+  if(warn){warn.classList.toggle("show",warnings.length>0);warn.innerHTML=warnings.length?`<strong>Partial-month warning</strong><br>${warnings.map(esc).join("<br>")}`:"";}
+  if(namePreview) namePreview.innerHTML=`Invoice period name: <strong>${esc(automaticInvoicePeriodName(range))}</strong>`;
+}
+function snapshotInvoiceEvidence(mapping,range,line){
+  const actualResources=resources.filter(r=>String(r.code||"")===String(mapping.code||"")).map(r=>({
+    name:getActualName(r)||r.name||r.role||"Unnamed",role:r.role||"",stream:r.stream||"",location:r.location||"",dayRate:Number(r.dayRate)||0,
+    actualDays:sumWeeks(r,"actualByWeek",Array.from({length:range.toWeek-range.fromWeek+1},(_,i)=>range.fromWeek+i)),
+    actualByWeek:Object.fromEntries(Array.from({length:range.toWeek-range.fromWeek+1},(_,i)=>{const w=range.fromWeek+i;return [String(w),Number(r.actualByWeek?.[String(w)]||0)];}))
+  })).filter(r=>r.actualDays!==0);
+  return {
+    generatedAt:new Date().toISOString(),generatedByRole:activeProject.role,projectName:activeProject.name,projectKey:activeProjectKey(),
+    baseline:{fileName:baselineMeta.fileName||baselineMeta.source||"",loadedAt:baselineMeta.loadedAt||"",weekCount:baselineMeta.weekCount||WEEK_COUNT},
+    fiReconciliation:lastFiReconciliation?clone(lastFiReconciliation):null,
+    actuals:actualResources,
+    approval:{status:"Draft",savedByRole:activeProject.role,savedAt:new Date().toISOString()},
+    totals:{actualDays:Number(line.days)||0,forecastDays:Number(line.forecastDays)||0,amount:Number(line.amount)||0,varianceDays:Number(line.days||0)-Number(line.forecastDays||0)}
+  };
+}
+function evidencePackHtml(period){
+  const e=period?.evidencePack;
+  if(!e) return `<h2>Invoice Evidence Pack</h2><p class="muted">No evidence snapshot was attached to this legacy invoice record.</p>`;
+  const fi=e.fiReconciliation;
+  const actualRows=(e.actuals||[]).map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.role)}</td><td>${esc(r.location)}</td><td class="num">${num(r.actualDays,2)}</td></tr>`).join("")||`<tr><td colspan="4">No resource actuals in the saved evidence snapshot.</td></tr>`;
+  return `<h2>Invoice Evidence Pack</h2><div class="evidence-summary"><div class="evidence-item"><div class="label">Baseline</div><div class="value">${esc(e.baseline?.fileName||"—")}</div></div><div class="evidence-item"><div class="label">FI rows imported</div><div class="value">${num(fi?.rowsImported||0,0)}</div></div><div class="evidence-item"><div class="label">FI total days</div><div class="value">${num(fi?.totalDaysImported||0,2)}</div></div><div class="evidence-item"><div class="label">Saved by</div><div class="value">${esc(e.generatedByRole||"—")}</div></div></div><h3>Resource actuals captured at invoice save</h3><table><thead><tr><th>Name</th><th>Role</th><th>Location</th><th class="num">Actual Days</th></tr></thead><tbody>${actualRows}</tbody></table><h3>Approval evidence</h3><p>Status at save: <strong>${esc(e.approval?.status||period.status||"Draft")}</strong> · Saved ${e.approval?.savedAt?new Date(e.approval.savedAt).toLocaleString("en-GB"):"—"} · Role: ${esc(e.approval?.savedByRole||"—")}</p>`;
+}
+
 function renderInvoices(){
   repopulateInvoiceCodeOptions();
   repopulateInvoiceEndWeekOptions();
@@ -1827,11 +1948,18 @@ function proposedInvoiceHtml(line, allLines=false, mode=settings.invoiceExportMo
   const safeNote=mode==="internal"?"Internal detail mode includes individual names and rates. Do not issue externally without commercial approval.":"Customer-safe mode aggregates detail by stream / role / code and excludes individual names and day rates.";
   const projectLabel=activeProject?.name ? ` · Project: ${esc(activeProject.name)}` : "";
   const roleLabel=activeProject?.role ? ` · Generated by ${esc(activeProject.role.charAt(0).toUpperCase()+activeProject.role.slice(1))}` : "";
-  return `<!doctype html><html><head><title>${esc(title)}</title><style>${printableBaseCss()}</style></head><body><button onclick="window.print()">Print / Save as PDF</button><h1>${esc(title)}${period?` · ${esc(period.invoiceLabel)}`:""}</h1><div class="muted">Generated ${new Date().toLocaleString("en-AU")} · Period W${fromWeek}–W${toWeek}${projectLabel}${roleLabel}${period?` · Status: ${esc(period.status)}`:""}</div><div class="note">${esc(safeNote)}</div><div class="grid"><div class="card"><div class="label">Invoice Period End</div><div class="value">${esc(invoicePeriodDateLabel(toWeek))}</div></div><div class="card"><div class="label">Total Net Amount</div><div class="value">${currency(total)}</div></div><div class="card"><div class="label">Invoice Lines</div><div class="value">${lines.length}</div></div></div><h2>Invoice Summary</h2><table><thead><tr><th>Invoice Period End</th><th>PO</th><th>Code</th><th>Invoice No.</th><th class="num">Invoice Amount (Net)</th><th class="num">From Week</th><th class="num">To Week</th><th class="num">No. of Resource</th><th>Variance Explanation</th></tr></thead><tbody>${summaryRows}</tbody><tfoot><tr class="total"><td>Total</td><td></td><td></td><td></td><td class="num">${currency(total)}</td><td></td><td></td><td></td><td></td></tr></tfoot></table><h2>Supporting Actuals Detail</h2><table><thead>${detailHeader}</thead><tbody>${detailRows}</tbody></table><p class="muted">Draft invoice generated from Financial Tracker actuals. Review against contract terms, approved timesheets and purchase order controls before issuing externally.</p></body></html>`;
+  return `<!doctype html><html><head><title>${esc(title)}</title><style>${printableBaseCss()}</style></head><body><button onclick="window.print()">Print / Save as PDF</button><h1>${esc(title)}${period?` · ${esc(period.invoiceLabel)}`:""}</h1><div class="muted">Generated ${new Date().toLocaleString("en-AU")} · Period W${fromWeek}–W${toWeek}${projectLabel}${roleLabel}${period?` · Status: ${esc(period.status)}`:""}</div><div class="note">${esc(safeNote)}</div><div class="grid"><div class="card"><div class="label">Invoice Period End</div><div class="value">${esc(invoicePeriodDateLabel(toWeek))}</div></div><div class="card"><div class="label">Total Net Amount</div><div class="value">${currency(total)}</div></div><div class="card"><div class="label">Invoice Lines</div><div class="value">${lines.length}</div></div></div><h2>Invoice Summary</h2><table><thead><tr><th>Invoice Period End</th><th>PO</th><th>Code</th><th>Invoice No.</th><th class="num">Invoice Amount (Net)</th><th class="num">From Week</th><th class="num">To Week</th><th class="num">No. of Resource</th><th>Variance Explanation</th></tr></thead><tbody>${summaryRows}</tbody><tfoot><tr class="total"><td>Total</td><td></td><td></td><td></td><td class="num">${currency(total)}</td><td></td><td></td><td></td><td></td></tr></tfoot></table><h2>Supporting Actuals Detail</h2><table><thead>${detailHeader}</thead><tbody>${detailRows}</tbody></table>${period?evidencePackHtml(period):""}<p class="muted">Draft invoice generated from Financial Tracker actuals. Review against contract terms, approved timesheets and purchase order controls before issuing externally.</p></body></html>`;
 }
 function openPrintWindow(html){
-  const w=window.open("","_blank"); if(!w){ alert("Popup blocked. Allow popups to generate the proposed invoice PDF."); return; }
-  w.document.write(html); w.document.close();
+  const w=window.open("","_blank","noopener=false"); if(!w){ alert("Popup blocked. Allow popups to generate the report."); return; }
+  const sessionBanner=`<div style="font:12px system-ui;color:#52647d;margin:0 0 10px">Project: <strong>${esc(activeProject.name||"—")}</strong> · Access: <strong>${esc((activeProject.role||"viewer").replace(/^./,c=>c.toUpperCase()))}</strong></div>`;
+  const cleanHtml=String(html||"").replace(/<body([^>]*)>/i,`<body$1>${sessionBanner}`);
+  w.document.open(); w.document.write(cleanHtml); w.document.close();
+  try{
+    w.document.querySelectorAll("#loginScreen,.login-screen,.login-card,.viewer-banner,.app-header,.workflow-nav,.project-login").forEach(el=>el.remove());
+    w.document.body.classList.remove("viewer-mode","login-visible");
+    w.sessionStorage.setItem("financialTrackerActiveProject",JSON.stringify(activeProject));
+  }catch(e){ console.warn("Print cleanup warning",e); }
 }
 function printProposedInvoice(line){
   if(!line) return;
@@ -2008,38 +2136,6 @@ function printForecastStatusCheck(){
 @media(max-width:720px){.login-grid{grid-template-columns:1fr}.login-hero h1{font-size:24px!important}}
 
 </style></head><body>
-
-<div id="loginScreen" class="login-screen">
-  <div class="login-card">
-    <div class="login-hero">
-      <h1>Financial Tracker</h1>
-      <p>Select a project workspace and access mode. Admin can load/edit data; Viewer can only view the selected project.</p>
-    </div>
-    <div class="login-body">
-      <div class="login-grid">
-        <label class="control"><span>Project</span><select id="loginProjectSelect"></select></label>
-        <label class="control"><span>Access Mode</span><select id="loginRoleSelect"><option value="viewer">Viewer</option><option value="admin">Admin</option></select></label>
-        <label id="loginPasswordWrap" class="control hidden"><span>Admin Password</span><input id="loginPasswordInput" type="password" placeholder="Enter admin password"></label>
-      </div>
-      <div class="login-actions">
-        <button class="action" id="loginEnterBtn" type="button">Open Project</button>
-        <button class="action secondary" id="showAddProjectBtn" type="button">Add Project</button>
-      </div>
-      <div id="loginError" class="login-error"></div>
-      <div id="addProjectPanel" class="project-add-panel">
-        <div class="login-grid">
-          <label class="control"><span>New Project Name</span><input id="newProjectNameInput" type="text" placeholder="e.g. Blackmores"></label>
-          <label class="control"><span>Admin Password</span><input id="newProjectAdminPassword" type="password" placeholder="admin"></label>
-        </div>
-        <div class="login-actions">
-          <button class="action" id="addProjectBtn" type="button">Create Project</button>
-          <button class="action ghost" id="cancelAddProjectBtn" type="button">Cancel</button>
-        </div>
-        <p class="hint">Default admin password is <strong>admin</strong>. Replace this with real authentication before production use.</p>
-      </div>
-    </div>
-  </div>
-</div>
 
     <button onclick="window.print()">Print / Save as PDF</button>
     <h1>Forecast Status Check</h1>
@@ -2781,6 +2877,171 @@ function drawBarChart(id,labels,values,options={}){
 }
 function compactCurrency(v){ const abs=Math.abs(v); if(abs>=1000000) return `$${(v/1000000).toFixed(1)}m`; if(abs>=1000) return `$${(v/1000).toFixed(0)}k`; return `$${Math.round(v)}`; }
 function debounce(fn,wait){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args),wait); }; }
+
+
+/* ===== v3.14 session-safe reports and flexible invoice periods ===== */
+function invoiceUnitDefinitions(type=settings.invoicePeriodType||"week"){
+  if(type==="month"){
+    return monthBuckets().map((b,idx)=>({
+      value:String(idx+1),
+      label:b.label || `M${idx+1}`,
+      fromWeek:Math.min(...b.weeks),
+      toWeek:Math.max(...b.weeks),
+      weeks:[...b.weeks]
+    }));
+  }
+  return weeks().map(w=>({value:String(w),label:invoiceWeekSingleDateLabel(w),fromWeek:w,toWeek:w,weeks:[w]}));
+}
+function invoicedWeekSet(code=settings.invoiceCode){
+  const set=new Set();
+  invoicePeriods.filter(p=>p.type!=="creditNote" && String(p.code||"")===String(code||"")).forEach(p=>{
+    for(let w=Number(p.fromWeek)||1;w<=(Number(p.toWeek)||0);w++) set.add(w);
+  });
+  return set;
+}
+function availableInvoiceUnits(type=settings.invoicePeriodType||"week",code=settings.invoiceCode){
+  const occupied=invoicedWeekSet(code);
+  return invoiceUnitDefinitions(type).filter(u=>u.weeks.every(w=>!occupied.has(w)));
+}
+function selectedInvoiceUnitRange(){
+  const type=settings.invoicePeriodType||"week";
+  const units=availableInvoiceUnits(type,settings.invoiceCode);
+  const start=units.find(u=>u.value===String(settings.invoiceStartValue)) || units[0] || null;
+  if(!start) return {type,start:null,end:null,fromWeek:WEEK_COUNT+1,toWeek:WEEK_COUNT};
+  const startIndex=invoiceUnitDefinitions(type).findIndex(u=>u.value===start.value);
+  const all=invoiceUnitDefinitions(type);
+  const occupied=invoicedWeekSet(settings.invoiceCode);
+  const validEnds=[];
+  for(let i=startIndex;i<all.length;i++){
+    const u=all[i];
+    if(u.weeks.some(w=>occupied.has(w))) break;
+    validEnds.push(u);
+  }
+  const end=validEnds.find(u=>u.value===String(settings.invoiceEndValue)) || validEnds[validEnds.length-1] || start;
+  settings.invoiceStartValue=start.value;
+  settings.invoiceEndValue=end.value;
+  return {type,start,end,fromWeek:start.fromWeek,toWeek:end.toWeek,validEnds};
+}
+function repopulateInvoicePeriodSelectors(){
+  const typeEl=document.getElementById("invoicePeriodTypeInput");
+  const startEl=document.getElementById("invoiceStartPeriodInput");
+  const endEl=document.getElementById("invoiceEndPeriodInput");
+  if(typeEl) typeEl.value=settings.invoicePeriodType||"week";
+  if(!startEl||!endEl) return;
+  const units=availableInvoiceUnits(settings.invoicePeriodType,settings.invoiceCode);
+  if(!units.length){
+    startEl.innerHTML='<option value="">No available periods</option>';
+    endEl.innerHTML='<option value="">No available periods</option>';
+    settings.invoiceStartValue=""; settings.invoiceEndValue="";
+    return;
+  }
+  if(!units.some(u=>u.value===String(settings.invoiceStartValue))) settings.invoiceStartValue=units[0].value;
+  startEl.innerHTML=units.map(u=>`<option value="${esc(u.value)}">${esc(u.label)}</option>`).join("");
+  startEl.value=settings.invoiceStartValue;
+  const range=selectedInvoiceUnitRange();
+  const validEnds=range.validEnds||[range.start];
+  endEl.innerHTML=validEnds.map(u=>`<option value="${esc(u.value)}">${esc(u.label)}</option>`).join("");
+  if(!validEnds.some(u=>u.value===String(settings.invoiceEndValue))) settings.invoiceEndValue=validEnds[validEnds.length-1].value;
+  endEl.value=settings.invoiceEndValue;
+}
+function invoicePeriodStartWeek(){ return selectedInvoiceUnitRange().fromWeek; }
+function invoicePeriodEndWeek(){ return selectedInvoiceUnitRange().toWeek; }
+function invoicePeriodDisplayLabel(unit){ return unit?.label||"—"; }
+function renderInvoices(){
+  repopulateInvoiceCodeOptions();
+  repopulateInvoicePeriodSelectors();
+  const saveBtn=document.getElementById("saveInvoicePeriodBtn"), printBtn=document.getElementById("printAllInvoicesBtn"), msg=document.getElementById("invoiceMessage");
+  if(!isForecastLoaded()){
+    if(saveBtn) saveBtn.disabled=true; if(printBtn) printBtn.disabled=true;
+    ["invoiceStartWeekLabel","invoiceEndWeekLabel"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent="—";});
+    const guard=document.getElementById("invoiceDuplicateGuardLabel"); if(guard) guard.textContent="Forecast required before invoicing";
+    renderInvoiceRegister(); renderInvoiceCalendar();
+    if(msg){msg.className="message show warn";msg.textContent="Load Forecast and Actuals before creating invoices.";}
+    return;
+  }
+  const mapping=selectedInvoiceMapping(); if(!settings.invoiceCode&&mapping.code)settings.invoiceCode=mapping.code;
+  repopulateInvoicePeriodSelectors();
+  const range=selectedInvoiceUnitRange();
+  const startLabel=document.getElementById("invoiceStartWeekLabel"); if(startLabel) startLabel.textContent=invoicePeriodDisplayLabel(range.start);
+  const endLabel=document.getElementById("invoiceEndWeekLabel"); if(endLabel) endLabel.textContent=invoicePeriodDisplayLabel(range.end);
+  const guard=document.getElementById("invoiceDuplicateGuardLabel");
+  if(guard) guard.textContent=range.start?`${settings.invoicePeriodType==="month"?"Monthly":"Weekly"} period · invoiced periods excluded`:`No uninvoiced periods remain for code ${settings.invoiceCode||"—"}`;
+  const codeInput=document.getElementById("invoiceCodeInput"); if(codeInput)codeInput.value=settings.invoiceCode||"";
+  const mode=document.getElementById("invoiceExportModeInput"); if(mode)mode.value=settings.invoiceExportMode||"customer";
+  updateInvoiceConfigInputs();
+  const draftLine=range.start?calculateInvoiceLine(mapping,range.fromWeek,range.toWeek):null;
+  renderPoBalancePanel(draftLine);
+  const canGenerate=!!mapping.code&&!!draftLine&&draftLine.days>0;
+  if(saveBtn)saveBtn.disabled=!canGenerate;if(printBtn)printBtn.disabled=!canGenerate;
+  if(msg){
+    if(!range.start){msg.className="message show warn";msg.textContent=`All available ${settings.invoicePeriodType==="month"?"months":"weeks"} have already been invoiced for code ${mapping.code}.`;}
+    else if(!canGenerate){msg.className="message show warn";msg.textContent=`No actuals exist for code ${mapping.code} in ${range.start.label} to ${range.end.label}.`;}
+    else{msg.className="message";msg.textContent="";}
+  }
+  renderInvoiceRegister();
+  renderInvoiceCalendar();
+}
+function saveInvoicePeriod(){
+  saveInvoiceConfigFromInputs();
+  const mapping=selectedInvoiceMapping();
+  const range=selectedInvoiceUnitRange();
+  if(!mapping.code||!range.start){showMessage("invoiceMessage","Select an available project code and invoice period.","bad");return;}
+  const line=calculateInvoiceLine(mapping,range.fromWeek,range.toWeek);
+  if(line.days<=0){showMessage("invoiceMessage",`No actuals exist for ${range.start.label} to ${range.end.label}.`,"bad");return;}
+  const cfg=getInvoiceCodeConfig(mapping.code), remainingBefore=(Number(cfg.poValue)||0)-invoicedToDateForCode(mapping.code);
+  if(Number(cfg.poValue)>0&&line.amount>remainingBefore&&!confirm(`Proposed invoice ${currency(line.amount)} exceeds remaining PO balance ${currency(remainingBefore)}. Save anyway?`))return;
+  const totals=invoiceTotals([line]);
+  const period=normaliseInvoicePeriod({
+    invoiceLabel:`Invoice ${invoicePeriods.filter(p=>p.type!=="creditNote").length+1}`,
+    type:"invoice",invoiceNo:line.invoiceNo,code:mapping.code,
+    fromWeek:range.fromWeek,toWeek:range.toWeek,
+    periodType:range.type,fromPeriodLabel:range.start.label,toPeriodLabel:range.end.label,
+    periodName:automaticInvoicePeriodName(range),
+    status:"Draft",lines:clone([line]),totalAmount:totals.amount,totalDays:totals.days,
+    varianceNote:varianceText(totals.days,totals.forecastDays),
+    evidencePack:snapshotInvoiceEvidence(mapping,range,line)
+  });
+  period.invoiceLabel=`Invoice ${invoicePeriods.filter(p=>p.type!=="creditNote").length+1} · ${period.periodName}`;
+  invoicePeriods.push(period);
+  settings.invoiceStartValue="";settings.invoiceEndValue="";
+  addAudit("Invoice period saved",`${period.invoiceLabel} · ${period.invoiceNo} · Code ${period.code} · ${period.fromPeriodLabel}–${period.toPeriodLabel} · ${currency(period.totalAmount)}`);
+  markDirty();renderActualsTable();renderInvoices();renderGovernance();
+  showMessage("invoiceMessage",`${period.invoiceLabel} saved. The invoiced ${period.periodType==="month"?"months":"weeks"} are now excluded from future invoice selections and matching Actuals are locked.`,"ok");
+}
+function renderInvoiceRegister(){
+  const table=document.getElementById("invoiceRegisterTable"); if(!table)return;
+  if(!invoicePeriods.length){table.innerHTML='<tbody><tr><td><div class="empty-state"><strong>Saved invoice register is empty.</strong><br>Select an available weekly or monthly period and save the invoice.</div></td></tr></tbody>';return;}
+  let runningByCode={};
+  const rows=invoicePeriods.map(p=>{
+    runningByCode[p.code]=(runningByCode[p.code]||0)+(Number(p.totalAmount)||0);
+    const remaining=(Number(getInvoiceCodeConfig(p.code).poValue)||0)-runningByCode[p.code];
+    const isCredit=p.type==="creditNote",locked=LOCKED_INVOICE_STATUSES.includes(p.status);
+    const fromLabel=p.fromPeriodLabel||invoiceWeekSingleDateLabel(p.fromWeek),toLabel=p.toPeriodLabel||invoiceWeekSingleDateLabel(p.toWeek);
+    const buttons=`<button class="action secondary row-action invoice-register-print-btn" data-period="${esc(p.id)}">PDF</button>${!isCredit?` <button class="action ghost row-action credit-note-btn" data-period="${esc(p.id)}">Credit Note</button>`:""} <button class="action danger row-action delete-invoice-btn" data-period="${esc(p.id)}">Delete</button>`;
+    return `<tr><td>${isCredit?"Credit Note":"Invoice"}</td><td>${esc(p.invoiceLabel)}</td><td>${esc(p.periodName||automaticInvoicePeriodName({type:p.periodType,start:{label:fromLabel,fromWeek:p.fromWeek,value:String(p.fromWeek)},end:{label:toLabel,toWeek:p.toWeek,value:String(p.toWeek)},fromWeek:p.fromWeek,toWeek:p.toWeek}))}</td><td>${esc(p.invoiceNo||"—")}</td><td>${esc(p.code||"—")}</td><td>${esc(p.periodType==="month"?"Months":"Weeks")}</td><td>${esc(fromLabel)}</td><td>${esc(toLabel)}</td><td class="num">${num(p.totalDays,1)}</td><td class="num">${currency(p.totalAmount)}</td><td class="num ${remaining<0?"overrun":""}">${currency(remaining)}</td><td>${esc(p.varianceNote||"")}</td><td>${p.evidencePack?'<span class="evidence-badge">Attached</span>':'<span class="muted">Legacy</span>'}</td><td><select class="invoice-status-select" data-period="${esc(p.id)}">${INVOICE_STATUSES.map(st=>`<option value="${esc(st)}" ${p.status===st?"selected":""}>${esc(st)}</option>`).join("")}</select>${locked?'<div class="invoice-note">Locked</div>':''}</td><td>${new Date(p.createdAt).toLocaleString("en-GB")}</td><td>${buttons}</td></tr>`;
+  }).join("");
+  table.innerHTML=`<thead><tr><th>Type</th><th>Invoice</th><th>Period Name</th><th>Invoice No.</th><th>Code</th><th>Period</th><th>Start</th><th>End</th><th class="num">Actual Days</th><th class="num">Amount</th><th class="num">PO Remaining</th><th>Variance</th><th>Evidence</th><th>Status</th><th>Saved</th><th>Actions</th></tr></thead><tbody>${rows}</tbody>`;
+  table.querySelectorAll(".invoice-status-select").forEach(sel=>sel.addEventListener("change",()=>updateInvoiceStatus(sel.dataset.period,sel.value)));
+  table.querySelectorAll(".invoice-register-print-btn").forEach(btn=>btn.addEventListener("click",()=>{const p=invoicePeriods.find(x=>x.id===btn.dataset.period);if(p)printSavedInvoicePeriod(p);}));
+  table.querySelectorAll(".credit-note-btn").forEach(btn=>btn.addEventListener("click",()=>createCreditNoteForInvoice(btn.dataset.period)));
+  table.querySelectorAll(".delete-invoice-btn").forEach(btn=>btn.addEventListener("click",()=>deleteInvoicePeriod(btn.dataset.period)));
+}
+function printAllProposedInvoices(){
+  const mapping=selectedInvoiceMapping(),range=selectedInvoiceUnitRange();
+  if(!mapping.code||!range.start)return;
+  const line=calculateInvoiceLine(mapping,range.fromWeek,range.toWeek);
+  addAudit("Proposed invoice preview printed",`Code ${mapping.code} · ${range.start.label}–${range.end.label} · ${settings.invoiceExportMode||"customer"}`);
+  renderGovernance();openPrintWindow(proposedInvoiceHtml(line,false,settings.invoiceExportMode||"customer"));
+}
+function bindV313InvoiceControls(){
+  const type=document.getElementById("invoicePeriodTypeInput"),start=document.getElementById("invoiceStartPeriodInput"),end=document.getElementById("invoiceEndPeriodInput");
+  type?.addEventListener("change",()=>{settings.invoicePeriodType=type.value;settings.invoiceStartValue="";settings.invoiceEndValue="";markDirty();renderInvoices();});
+  start?.addEventListener("change",()=>{settings.invoiceStartValue=start.value;settings.invoiceEndValue="";markDirty();renderInvoices();});
+  end?.addEventListener("change",()=>{settings.invoiceEndValue=end.value;markDirty();renderInvoices();});
+  const code=document.getElementById("invoiceCodeInput");
+  code?.addEventListener("change",()=>{settings.invoiceCode=code.value;settings.invoiceStartValue="";settings.invoiceEndValue="";updateInvoiceConfigInputs();markDirty();renderInvoices();});
+}
+document.addEventListener("DOMContentLoaded",()=>setTimeout(bindV313InvoiceControls,0));
 
 document.addEventListener("DOMContentLoaded",async()=>{ initialise(); await initialiseFirebaseFromSavedConfig(true); await loadProjectRegistry(); initialiseLogin(); resetInMemoryState(); renderAll(); });
 </script>

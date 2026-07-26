@@ -157,7 +157,7 @@ canvas { font-size: var(--app-font-size) !important; }
 
 
 /* POAP v4.0 */
-.poap-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:end}.poap-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}.poap-board{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}.poap-scale{display:grid;grid-template-columns:230px 1fr;background:#f3f6fb;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}.poap-scale-title{padding:12px;font-weight:850;border-right:1px solid var(--line)}.poap-week-scale{position:relative;height:54px;overflow:hidden}.poap-week-label{position:absolute;top:0;bottom:0;border-left:1px solid #dfe6f0;padding:7px 2px;font-size:10px;text-align:center;overflow:hidden;white-space:nowrap}.poap-week-label strong{display:block;font-size:10px;color:var(--brand-dark)}.poap-week-label span{display:block;color:var(--muted);font-size:9px}.poap-workstream{display:grid;grid-template-columns:230px 1fr;border-bottom:1px solid var(--line);min-height:78px}.poap-workstream:last-child{border-bottom:0}.poap-workstream-info{padding:10px 12px;border-right:1px solid var(--line);background:#fbfcff}.poap-workstream-info strong{display:block}.poap-workstream-info small{color:var(--muted)}.poap-workstream-actions{display:flex;gap:5px;margin-top:7px}.poap-workstream-actions button{padding:4px 7px;font-size:10px}.poap-track{position:relative;min-height:78px;background-image:linear-gradient(to right,rgba(205,215,228,.55) 1px,transparent 1px);background-size:calc(100% / var(--poap-weeks)) 100%}.poap-today{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;z-index:2;pointer-events:none}.poap-today::before{content:'Today';position:absolute;top:2px;left:3px;color:#ef4444;font-size:9px;font-weight:800}.poap-activity{position:absolute;top:20px;height:38px;border:1px solid #72aa7f;border-radius:7px;background:#bfe7c5;box-shadow:0 2px 5px rgba(20,50,80,.13);display:flex;align-items:center;justify-content:center;padding:0 11px;cursor:grab;z-index:3;overflow:hidden;white-space:nowrap;font-size:11px;font-weight:750;color:#183c26;user-select:none}.poap-activity.status-not-started{background:#cfe0fb;border-color:#7ba2e1;color:#183a70}.poap-activity.status-at-risk{background:#ffe7aa;border-color:#e5ad30;color:#694807}.poap-activity.status-behind{background:#ffd0ca;border-color:#e67d71;color:#72261e}.poap-activity.status-completed{background:#aee0b8;border-color:#58a56a}.poap-activity.selected{outline:3px solid rgba(36,84,221,.25)}.poap-resize{position:absolute;top:0;bottom:0;width:8px;cursor:ew-resize}.poap-resize.left{left:0}.poap-resize.right{right:0}.poap-empty{padding:50px 20px;text-align:center;color:var(--muted)}.poap-editor{border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:var(--shadow);padding:16px;align-self:start;position:sticky;top:12px}.poap-editor h3{margin:0 0 12px}.poap-editor-grid{display:grid;gap:10px}.poap-editor .control input,.poap-editor .control select,.poap-editor .control textarea{width:100%}.poap-editor textarea{min-height:75px;resize:vertical}.poap-progress-card{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.poap-progress-item{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}.poap-progress-item strong{font-size:22px;color:var(--brand-dark)}.poap-progress-bar{height:8px;border-radius:999px;background:#e7edf5;overflow:hidden;margin-top:7px}.poap-progress-bar i{display:block;height:100%;background:#36a852}.poap-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--muted);margin-top:10px}.poap-legend span{display:inline-flex;align-items:center;gap:5px}.poap-legend i{width:11px;height:11px;border-radius:3px;border:1px solid rgba(0,0,0,.15)}
+.poap-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:end}.poap-toolbar .control{min-width:150px}.poap-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}.poap-board{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}.poap-scale{display:grid;grid-template-columns:230px 1fr;background:#f3f6fb;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}.poap-scale-title{padding:12px;font-weight:850;border-right:1px solid var(--line)}.poap-week-scale{position:relative;height:54px;overflow:hidden}.poap-week-label{position:absolute;top:0;bottom:0;border-left:1px solid #dfe6f0;padding:7px 2px;font-size:10px;text-align:center;overflow:hidden;white-space:nowrap}.poap-week-label strong{display:block;font-size:10px;color:var(--brand-dark)}.poap-week-label span{display:block;color:var(--muted);font-size:9px}.poap-workstream{display:grid;grid-template-columns:230px 1fr;border-bottom:1px solid var(--line);min-height:78px}.poap-workstream:last-child{border-bottom:0}.poap-workstream-info{padding:10px 12px;border-right:1px solid var(--line);background:#fbfcff}.poap-workstream-info strong{display:block}.poap-workstream-info small{color:var(--muted)}.poap-workstream-actions{display:flex;gap:5px;margin-top:7px}.poap-workstream-actions button{padding:4px 7px;font-size:10px}.poap-track{position:relative;min-height:78px;background-image:linear-gradient(to right,rgba(205,215,228,.55) 1px,transparent 1px);background-size:calc(100% / var(--poap-weeks)) 100%}.poap-today{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;z-index:2;pointer-events:none}.poap-today::before{content:'Today';position:absolute;top:2px;left:3px;color:#ef4444;font-size:9px;font-weight:800}.poap-activity{position:absolute;top:20px;height:34px;border:1px solid var(--activity-border,#72aa7f);border-radius:7px;background:var(--activity-color,#bfe7c5);box-shadow:0 2px 5px rgba(20,50,80,.13);display:flex;align-items:center;justify-content:center;padding:0 11px;cursor:grab;z-index:3;overflow:hidden;white-space:nowrap;font-size:11px;font-weight:750;color:var(--activity-text,#183c26);user-select:none}.poap-activity.status-not-started{background:#cfe0fb;border-color:#7ba2e1;color:#183a70}.poap-activity.status-at-risk{background:#ffe7aa;border-color:#e5ad30;color:#694807}.poap-activity.status-behind{background:#ffd0ca;border-color:#e67d71;color:#72261e}.poap-activity.status-completed{background:#aee0b8;border-color:#58a56a}.poap-activity.selected{outline:3px solid rgba(36,84,221,.25)}.poap-resize{position:absolute;top:0;bottom:0;width:8px;cursor:ew-resize}.poap-resize.left{left:0}.poap-resize.right{right:0}.poap-empty{padding:50px 20px;text-align:center;color:var(--muted)}.poap-editor{border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:var(--shadow);padding:16px;align-self:start;position:sticky;top:12px}.poap-editor h3{margin:0 0 12px}.poap-editor-grid{display:grid;gap:10px}.poap-editor .control input,.poap-editor .control select,.poap-editor .control textarea{width:100%}.poap-editor textarea{min-height:75px;resize:vertical}.poap-progress-card{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.poap-progress-item{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}.poap-progress-item strong{font-size:22px;color:var(--brand-dark)}.poap-progress-bar{height:8px;border-radius:999px;background:#e7edf5;overflow:hidden;margin-top:7px}.poap-progress-bar i{display:block;height:100%;background:#36a852}.poap-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--muted);margin-top:10px}.poap-legend span{display:inline-flex;align-items:center;gap:5px}.poap-legend i{width:11px;height:11px;border-radius:3px;border:1px solid rgba(0,0,0,.15)}
 @media(max-width:1100px){.poap-layout{grid-template-columns:1fr}.poap-editor{position:static}.poap-progress-card{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
@@ -280,6 +280,7 @@ canvas { font-size: var(--app-font-size) !important; }
     <div class="panel-header">
       <div><h2>POAP — Plan on a Page</h2><p>Create workstreams and schedule activities against the project timeline. Drag activities to move them and drag either edge to resize.</p></div>
       <div class="poap-toolbar no-print">
+        <label class="control"><span>Timeline</span><select id="poapIntervalToggle"><option value="week">Weeks</option><option value="month">Months</option></select></label>
         <button class="action admin-only" id="addPoapWorkstreamBtn">Add Workstream</button>
         <button class="action secondary admin-only" id="addPoapActivityBtn">Add Activity</button>
         <button class="action secondary admin-only" id="savePoapBtn">Save POAP</button>
@@ -302,6 +303,7 @@ canvas { font-size: var(--app-font-size) !important; }
             <div class="two-col"><label class="control"><span>Start Week</span><input id="poapActivityStart" type="number" min="1"></label><label class="control"><span>End Week</span><input id="poapActivityEnd" type="number" min="1"></label></div>
             <label class="control"><span>Status</span><select id="poapActivityStatus"><option>Not Started</option><option>In Progress</option><option>At Risk</option><option>Behind</option><option>Completed</option></select></label>
             <label class="control"><span>Priority</span><select id="poapActivityPriority"><option>Low</option><option selected>Medium</option><option>High</option></select></label>
+            <label class="control"><span>Colour</span><select id="poapActivityColour"><option value="green">Green</option><option value="blue">Blue</option><option value="amber">Amber</option><option value="red">Red</option><option value="purple">Purple</option><option value="teal">Teal</option><option value="grey">Grey</option></select></label>
             <label class="control"><span>Weight</span><input id="poapActivityWeight" type="number" min="0.1" step="0.1" value="1"></label>
             <div class="login-actions"><button class="action admin-only" id="savePoapActivityBtn">Apply</button><button class="action danger admin-only" id="deletePoapActivityBtn">Delete</button></div>
             <div class="small-note">Auto progress: <strong id="poapActivityAutoProgress">0%</strong>, based on planned dates and today's date.</div>
@@ -447,7 +449,7 @@ canvas { font-size: var(--app-font-size) !important; }
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
 <script>
 "use strict";
-const APP_VERSION = "4.0.0-multi-project-poap";
+const APP_VERSION = "4.1.0-multi-project-poap";
 const STORAGE_KEY = "financialTracker.blank.v2";
 const FIREBASE_SETTINGS_KEY = STORAGE_KEY + ".firebase";
 const DEFAULT_FIREBASE_PROJECT_KEY = "gwf";
@@ -473,7 +475,7 @@ const baseResources = [];
 let forecastBaseline = [];
 let baselineMeta = { source: "No forecast loaded", loadedAt: "", fileName: "No forecast loaded", weekCount: 0, dataWeekCount: 0 };
 let resources = [];
-let settings = { currentWeek: 1, startDate: "", percentComplete: 0, progressMode: "poap", lastSaved: null, actualsInterval: "week", fontSize: 14, displayPrecision: "standard", numberOfWeeks: WEEK_COUNT, invoiceEndWeek: 1, invoiceCode: "", invoiceExportMode: "customer", invoicePeriodType: "week", invoiceStartValue: "", invoiceEndValue: "" };
+let settings = { currentWeek: 1, startDate: "", percentComplete: 0, progressMode: "poap", poapInterval: "week", lastSaved: null, actualsInterval: "week", fontSize: 14, displayPrecision: "standard", numberOfWeeks: WEEK_COUNT, invoiceEndWeek: 1, invoiceCode: "", invoiceExportMode: "customer", invoicePeriodType: "week", invoiceStartValue: "", invoiceEndValue: "" };
 const invoiceMappings = [];
 let changeLog = [];
 let forecastChangeRequests = [];
@@ -543,7 +545,7 @@ async function loadProjectRegistry(){
   }
 }
 async function saveProjectRegistry(){ try{ projectRegistry=normaliseProjectRegistry(projectRegistry); await initialiseFirebaseFromSavedConfig(false); const ref=await registryDocRef(); if(ref) await ref.set({projects:projectRegistry, updatedAt: firebase.firestore.FieldValue.serverTimestamp()},{merge:false}); }catch(e){ console.warn("Project registry save failed", e.message); } }
-function resetInMemoryState(){ forecastBaseline=[]; resources=[]; baselineMeta={ source:"No forecast loaded", loadedAt:"", fileName:"No forecast loaded", weekCount:0, dataWeekCount:0 }; forecastChangeRequests=[]; invoicePeriods=[]; invoiceCodeConfigs={}; changeLog=[]; lastFiReconciliation=null; poapWorkstreams=[]; poapActivities=[]; selectedPoapActivityId=null; setWeekHorizon(50,{allowBelowData:true,reason:"Project switch"}); settings={currentWeek:1,startDate:"",percentComplete:0,progressMode:"poap",lastSaved:null,actualsInterval:"week",fontSize:14,displayPrecision:"standard",numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer"}; dirty=false; }
+function resetInMemoryState(){ forecastBaseline=[]; resources=[]; baselineMeta={ source:"No forecast loaded", loadedAt:"", fileName:"No forecast loaded", weekCount:0, dataWeekCount:0 }; forecastChangeRequests=[]; invoicePeriods=[]; invoiceCodeConfigs={}; changeLog=[]; lastFiReconciliation=null; poapWorkstreams=[]; poapActivities=[]; selectedPoapActivityId=null; setWeekHorizon(50,{allowBelowData:true,reason:"Project switch"}); settings={currentWeek:1,startDate:"",percentComplete:0,progressMode:"poap",poapInterval:"week",lastSaved:null,actualsInterval:"week",fontSize:14,displayPrecision:"standard",numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer",poapInterval:"week"}; dirty=false; }
 async function openSelectedProject(){
   clearLoginError();
   projectRegistry = normaliseProjectRegistry(projectRegistry);
@@ -747,7 +749,7 @@ function calculateActualCostToWeek(currentWeek){ return resources.reduce((s,r)=>
 function calculateForecastCostToWeek(currentWeek){ return getForecastResources().reduce((s,r)=>s+sumByWeek(r,"forecastByWeek",1,currentWeek)*(Number(r.dayRate)||0),0); }
 
 function normalisePoapWorkstream(w){ return {id:String(w?.id||`ws-${Date.now()}-${Math.random().toString(36).slice(2,7)}`),name:String(w?.name||"Workstream"),order:Number(w?.order)||0}; }
-function normalisePoapActivity(a){ if(!a) return null; return {id:String(a.id||`act-${Date.now()}-${Math.random().toString(36).slice(2,7)}`),workstreamId:String(a.workstreamId||""),name:String(a.name||"Activity"),description:String(a.description||""),startWeek:clamp(a.startWeek,1,WEEK_COUNT,1),endWeek:clamp(a.endWeek,1,WEEK_COUNT,1),status:String(a.status||"Not Started"),priority:String(a.priority||"Medium"),weight:Math.max(.1,Number(a.weight)||1)}; }
+function normalisePoapActivity(a){ if(!a) return null; const allowed=["green","blue","amber","red","purple","teal","grey"]; return {id:String(a.id||`act-${Date.now()}-${Math.random().toString(36).slice(2,7)}`),workstreamId:String(a.workstreamId||""),name:String(a.name||"Activity"),description:String(a.description||""),startWeek:clamp(a.startWeek,1,WEEK_COUNT,1),endWeek:clamp(a.endWeek,1,WEEK_COUNT,1),status:String(a.status||"Not Started"),priority:String(a.priority||"Medium"),colour:allowed.includes(String(a.colour||"green"))?String(a.colour||"green"):"green",weight:Math.max(.1,Number(a.weight)||1)}; }
 function poapActivityProgress(a, today=new Date()){
   if(!settings.startDate) return 0;
   const projectStart=parseLocalIsoDate(settings.startDate); if(!projectStart) return 0;
@@ -809,6 +811,7 @@ function buildStatePayload(){
     startDate:settings.startDate,
     percentComplete:settings.percentComplete,
     progressMode:settings.progressMode,
+    poapInterval:settings.poapInterval||"week",
     poapWorkstreams:clone(poapWorkstreams),
     poapActivities:clone(poapActivities),
     invoiceEndWeek:settings.invoiceEndWeek,
@@ -942,6 +945,7 @@ function applyStatePayload(payload){
   syncCurrentWeekFromStartDate();
   settings.percentComplete=clamp(payload.percentComplete,0,100,0);
   settings.progressMode=["poap","manual"].includes(payload.progressMode)?payload.progressMode:"poap";
+  settings.poapInterval=["week","month"].includes(payload.poapInterval)?payload.poapInterval:"week";
   poapWorkstreams=Array.isArray(payload.poapWorkstreams)?payload.poapWorkstreams.map(normalisePoapWorkstream):[];
   poapActivities=Array.isArray(payload.poapActivities)?payload.poapActivities.map(normalisePoapActivity).filter(Boolean):[];
   if(payload.invoiceEndWeek!==undefined) settings.invoiceEndWeek=clamp(payload.invoiceEndWeek,1,WEEK_COUNT,settings.invoiceEndWeek||settings.currentWeek);
@@ -1027,6 +1031,7 @@ function exportActualsJson(){
     startDate:settings.startDate,
     percentComplete:settings.percentComplete,
     progressMode:settings.progressMode,
+    poapInterval:settings.poapInterval||"week",
     poapWorkstreams:clone(poapWorkstreams),
     poapActivities:clone(poapActivities),
     invoiceEndWeek:settings.invoiceEndWeek,
@@ -1064,6 +1069,7 @@ function importActualsJson(file){
       if(payload.startDate!==undefined){ settings.startDate=payload.startDate || settings.startDate; syncCurrentWeekFromStartDate(); }
       if(payload.percentComplete!==undefined) settings.percentComplete=clamp(payload.percentComplete,0,100,settings.percentComplete);
       settings.progressMode=["poap","manual"].includes(payload.progressMode)?payload.progressMode:settings.progressMode;
+      settings.poapInterval=["week","month"].includes(payload.poapInterval)?payload.poapInterval:(settings.poapInterval||"week");
       if(Array.isArray(payload.poapWorkstreams)) poapWorkstreams=payload.poapWorkstreams.map(normalisePoapWorkstream);
       if(Array.isArray(payload.poapActivities)) poapActivities=payload.poapActivities.map(normalisePoapActivity).filter(Boolean);
       if(payload.invoiceEndWeek!==undefined) settings.invoiceEndWeek=clamp(payload.invoiceEndWeek,1,WEEK_COUNT,settings.invoiceEndWeek||settings.currentWeek);
@@ -1319,7 +1325,7 @@ function resetToBlankApplicationState(reason="Application reset"){
   resources=[];
   baselineMeta={ source:"No forecast loaded", loadedAt:"", fileName:"No forecast loaded", weekCount:0, dataWeekCount:0 };
   forecastChangeRequests=[]; invoicePeriods=[]; invoiceCodeConfigs={}; changeLog=[]; poapWorkstreams=[]; poapActivities=[]; selectedPoapActivityId=null;
-  settings={currentWeek:1,startDate:"",percentComplete:0,progressMode:"poap",lastSaved:null,actualsInterval:"week",fontSize:14,displayPrecision:"standard",numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer"};
+  settings={currentWeek:1,startDate:"",percentComplete:0,progressMode:"poap",poapInterval:"week",lastSaved:null,actualsInterval:"week",fontSize:14,displayPrecision:"standard",numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer",poapInterval:"week"};
   weekDates={};
   setWeekHorizon(50,{allowBelowData:true,reason});
   syncCurrentWeekFromStartDate();
@@ -1356,7 +1362,7 @@ function renderDashboard(){
   const kpis=[
     ["Budget at Completion",currency(m.bac),"BAC · locked forecast total","BAC is the total authorised baseline budget from the Forecast sheet.",vs.level],
     ["Actual Cost to Week",currency(m.ac),`AC · through Week ${m.currentWeek}`,"AC is actual days to date multiplied by each role day rate.",""],
-    ["% Complete",pct(effectivePercentComplete(),1),settings.progressMode==="poap"&&poapActivities.length?"Automatically derived from POAP":"Manual dashboard input",settings.progressMode==="poap"&&poapActivities.length?"Duration-weighted progress calculated from POAP activity dates and today.":"The manual progress input used to calculate earned value.",""],
+    ["% Complete",pct(effectivePercentComplete(),1),settings.progressMode==="poap"&&poapActivities.length?"Automatically derived from POAP":"Manual dashboard input",settings.progressMode==="poap"&&poapActivities.length?"Schedule-based progress calculated from all POAP activity durations and today, assuming planned work up to today is complete.":"The manual progress input used to calculate earned value.",""],
     ["Earned Value",currency(m.ev),"EV = BAC × % Complete","EV is the value of work earned based on current progress.",""],
     ["Estimate to Complete",currency(m.etc),"ETC = BAC − EV","Remaining value of work still to be earned.",""],
     ["Estimate at Completion",currency(m.eac),"EAC = AC + ETC","Expected final cost using current actuals plus remaining estimate.",vs.level],
@@ -2029,7 +2035,7 @@ function addPoapActivity(workstreamId){
   if(!poapWorkstreams.length){ alert("Add a workstream before creating an activity."); return; }
   const ws=workstreamId||poapWorkstreams[0].id;
   const start=Math.max(1,settings.currentWeek||1), end=Math.min(WEEK_COUNT,start+3);
-  const a=normalisePoapActivity({workstreamId:ws,name:"New Activity",startWeek:start,endWeek:end,status:"Not Started",priority:"Medium",weight:1});
+  const a=normalisePoapActivity({workstreamId:ws,name:"New Activity",startWeek:start,endWeek:end,status:"Not Started",priority:"Medium",colour:"green",weight:1});
   poapActivities.push(a); selectedPoapActivityId=a.id; markDirty(); renderPoap(); updateWizard();
 }
 function removePoapWorkstream(id){
@@ -2039,24 +2045,65 @@ function removePoapWorkstream(id){
   poapWorkstreams=poapWorkstreams.filter(w=>w.id!==id); poapActivities=poapActivities.filter(a=>a.workstreamId!==id); selectedPoapActivityId=null; markDirty(); renderAll();
 }
 function selectPoapActivity(id){ selectedPoapActivityId=id; renderPoapEditor(); document.querySelectorAll('.poap-activity').forEach(el=>el.classList.toggle('selected',el.dataset.id===id)); }
+
+function poapColourStyle(colour){
+  const palette={
+    green:{bg:'#bfe7c5',border:'#72aa7f',text:'#183c26'},
+    blue:{bg:'#cfe0fb',border:'#7ba2e1',text:'#183a70'},
+    amber:{bg:'#ffe7aa',border:'#e5ad30',text:'#694807'},
+    red:{bg:'#ffd0ca',border:'#e67d71',text:'#72261e'},
+    purple:{bg:'#e5d7fb',border:'#a783d6',text:'#493066'},
+    teal:{bg:'#c7eee8',border:'#5eaea2',text:'#174d46'},
+    grey:{bg:'#e4e8ee',border:'#9aa6b5',text:'#344054'}
+  };
+  return palette[colour]||palette.green;
+}
+function poapTimelineMonths(){
+  if(!settings.startDate) return [];
+  const start=parseLocalIsoDate(settings.startDate); if(!start) return [];
+  const totalDays=WEEK_COUNT*7;
+  const end=new Date(start); end.setDate(end.getDate()+totalDays-1);
+  const months=[]; let cursor=new Date(start.getFullYear(),start.getMonth(),1);
+  while(cursor<=end){
+    const monthStart=new Date(Math.max(cursor.getTime(),start.getTime()));
+    const next=new Date(cursor.getFullYear(),cursor.getMonth()+1,1);
+    const monthEnd=new Date(Math.min(next.getTime()-86400000,end.getTime()));
+    const left=((monthStart-start)/86400000)/totalDays*100;
+    const width=(((monthEnd-monthStart)/86400000)+1)/totalDays*100;
+    months.push({label:cursor.toLocaleDateString('en-AU',{month:'short',year:'numeric'}),left,width,from:monthStart,to:monthEnd});
+    cursor=next;
+  }
+  return months;
+}
+function poapPositionFromWeek(week){ return ((Math.max(1,week)-1)/WEEK_COUNT)*100; }
+function poapWidthFromWeeks(startWeek,endWeek){ return ((Math.max(startWeek,endWeek)-Math.max(1,startWeek)+1)/WEEK_COUNT)*100; }
+
 function renderPoap(){
   const board=document.getElementById("poapBoard"); if(!board) return;
+  const interval=settings.poapInterval||"week";
   const overall=calculatePoapOverallProgress();
   const inProgress=poapActivities.filter(a=>poapActivityProgress(a)>0&&poapActivityProgress(a)<100).length;
-  const complete=poapActivities.filter(a=>poapActivityProgress(a)>=100||a.status==="Completed").length;
+  const complete=poapActivities.filter(a=>poapActivityProgress(a)>=100).length;
   const atRisk=poapActivities.filter(a=>["At Risk","Behind"].includes(a.status)).length;
   const summary=document.getElementById("poapProgressSummary"); if(summary) summary.innerHTML=[['Overall Complete',pct(overall,0)],['Activities',poapActivities.length],['In Progress',inProgress],['At Risk / Behind',atRisk]].map(([l,v])=>`<div class="poap-progress-item"><span class="small-note">${esc(l)}</span><strong>${esc(v)}</strong><div class="poap-progress-bar"><i style="width:${l==='Overall Complete'?overall:0}%"></i></div></div>`).join('');
-  if(!poapWorkstreams.length){ board.innerHTML=`<div class="poap-empty"><h3>No POAP workstreams yet</h3><p>Add a workstream, then add and schedule activities.</p></div>`; renderPoapEditor(); return; }
-  const labels=weeks().map(w=>{ const left=((w-1)/WEEK_COUNT)*100,width=100/WEEK_COUNT; const d=weekDates[w]; return `<div class="poap-week-label" style="left:${left}%;width:${width}%"><strong>W${w}</strong><span>${d?formatShortDate(d):''}</span></div>`; }).join('');
+  const intervalEl=document.getElementById('poapIntervalToggle'); if(intervalEl) intervalEl.value=interval;
+  if(!poapWorkstreams.length){ board.innerHTML=`<div class="poap-empty"><h3>No POAP workstreams yet</h3><p>Select <strong>Add Workstream</strong>. The new workstream will appear immediately in column 1.</p></div>`; renderPoapEditor(); return; }
+  let labels='';
+  if(interval==='month' && settings.startDate){
+    labels=poapTimelineMonths().map(m=>`<div class="poap-month-label" style="left:${m.left}%;width:${m.width}%"><strong>${esc(m.label)}</strong><span>${formatShortDate(m.from)}–${formatShortDate(m.to)}</span></div>`).join('');
+  }else{
+    labels=weeks().map(w=>{ const left=((w-1)/WEEK_COUNT)*100,width=100/WEEK_COUNT; const d=weekDates[w]; return `<div class="poap-week-label" style="left:${left}%;width:${width}%"><strong>W${w}</strong><span>${d?formatShortDate(d):''}</span></div>`; }).join('');
+  }
   const todayWeek=settings.startDate?deriveCurrentWeekFromStartDate(settings.startDate):0;
-  const todayLine=todayWeek>=1&&todayWeek<=WEEK_COUNT?`<div class="poap-today" style="left:${((todayWeek-1)/WEEK_COUNT)*100}%"></div>`:'';
+  const todayLine=todayWeek>=1&&todayWeek<=WEEK_COUNT?`<div class="poap-today" style="left:${poapPositionFromWeek(todayWeek)}%"></div>`:'';
   board.style.setProperty('--poap-weeks',WEEK_COUNT);
-  board.innerHTML=`<div class="poap-scale"><div class="poap-scale-title">Workstream / Activity</div><div class="poap-week-scale">${labels}</div></div>`+poapWorkstreams.sort((a,b)=>a.order-b.order).map(ws=>{
-    const acts=poapActivities.filter(a=>a.workstreamId===ws.id);
-    const wsp=acts.length?acts.reduce((s,a)=>s+poapActivityProgress(a),0)/acts.length:0;
-    const bars=acts.map((a,i)=>{ const left=((a.startWeek-1)/WEEK_COUNT)*100,width=((a.endWeek-a.startWeek+1)/WEEK_COUNT)*100; const status='status-'+a.status.toLowerCase().replace(/\s+/g,'-'); return `<div class="poap-activity ${status} ${a.id===selectedPoapActivityId?'selected':''}" data-id="${esc(a.id)}" draggable="${isAdminMode()}" style="left:${left}%;width:${width}%;top:${14+(i%2)*38}px" title="${esc(a.name)} · W${a.startWeek}–W${a.endWeek} · ${pct(poapActivityProgress(a),0)}"><span class="poap-resize left" data-edge="left"></span>${esc(a.name)}<span class="poap-resize right" data-edge="right"></span></div>`; }).join('');
-    const minHeight=Math.max(78,20+Math.min(2,acts.length)*38);
-    return `<div class="poap-workstream" data-ws="${esc(ws.id)}" style="min-height:${minHeight}px"><div class="poap-workstream-info"><strong>${esc(ws.name)}</strong><small>${acts.length} activities · ${pct(wsp,0)}</small><div class="poap-workstream-actions no-print"><button class="action secondary admin-only" data-add-activity="${esc(ws.id)}">+ Activity</button><button class="action danger admin-only" data-delete-ws="${esc(ws.id)}">Delete</button></div></div><div class="poap-track" data-ws="${esc(ws.id)}" style="min-height:${minHeight}px">${todayLine}${bars}</div></div>`;
+  board.innerHTML=`<div class="poap-scale"><div class="poap-scale-title">Workstream / Activity</div><div class="poap-week-scale">${labels}</div></div>`+poapWorkstreams.slice().sort((a,b)=>a.order-b.order).map(ws=>{
+    const acts=poapActivities.filter(a=>a.workstreamId===ws.id).sort((a,b)=>a.startWeek-b.startWeek||a.endWeek-b.endWeek);
+    const totalWeight=acts.reduce((s,a)=>s+Math.max(1,a.endWeek-a.startWeek+1)*Math.max(.1,Number(a.weight)||1),0);
+    const wsp=totalWeight?acts.reduce((s,a)=>{const wt=Math.max(1,a.endWeek-a.startWeek+1)*Math.max(.1,Number(a.weight)||1);return s+poapActivityProgress(a)*wt;},0)/totalWeight:0;
+    const bars=acts.map((a,i)=>{ const left=poapPositionFromWeek(a.startWeek),width=poapWidthFromWeeks(a.startWeek,a.endWeek); const c=poapColourStyle(a.colour); const progress=poapActivityProgress(a); return `<div class="poap-activity ${a.id===selectedPoapActivityId?'selected':''}" data-id="${esc(a.id)}" draggable="${isAdminMode()}" style="left:${left}%;width:${width}%;top:${12+i*42}px;--activity-color:${c.bg};--activity-border:${c.border};--activity-text:${c.text}" title="${esc(a.name)} · W${a.startWeek}–W${a.endWeek} · ${pct(progress,0)}"><span class="poap-resize left" data-edge="left"></span><span class="activity-label">${esc(a.name)}</span><span class="poap-resize right" data-edge="right"></span><span class="activity-progress" style="width:${progress}%"></span></div>`; }).join('');
+    const minHeight=Math.max(72,30+acts.length*42);
+    return `<div class="poap-workstream" data-ws="${esc(ws.id)}" style="min-height:${minHeight}px"><div class="poap-workstream-info"><div class="ws-title"><strong>${esc(ws.name)}</strong><span class="ws-progress">${pct(wsp,0)}</span></div><small>${acts.length} ${acts.length===1?'activity':'activities'}</small><div class="poap-workstream-actions no-print"><button class="action secondary admin-only" data-add-activity="${esc(ws.id)}">+ Activity</button><button class="action danger admin-only" data-delete-ws="${esc(ws.id)}">Delete</button></div></div><div class="poap-track" data-ws="${esc(ws.id)}" style="min-height:${minHeight}px;background-size:${interval==='month'?'calc(100% / '+Math.max(1,poapTimelineMonths().length)+') 100%':'calc(100% / var(--poap-weeks)) 100%'}">${todayLine}${bars}</div></div>`;
   }).join('');
   bindPoapBoardEvents(); renderPoapEditor();
 }
@@ -2066,14 +2113,15 @@ function renderPoapEditor(){
   if(!a){ form.hidden=true; empty.hidden=false; return; }
   empty.hidden=true; form.hidden=false;
   const wsSel=document.getElementById('poapActivityWorkstream'); wsSel.innerHTML=poapWorkstreams.map(w=>`<option value="${esc(w.id)}">${esc(w.name)}</option>`).join(''); wsSel.value=a.workstreamId;
-  document.getElementById('poapActivityName').value=a.name; document.getElementById('poapActivityDescription').value=a.description||''; document.getElementById('poapActivityStart').value=a.startWeek; document.getElementById('poapActivityEnd').value=a.endWeek; document.getElementById('poapActivityStatus').value=a.status; document.getElementById('poapActivityPriority').value=a.priority; document.getElementById('poapActivityWeight').value=a.weight; document.getElementById('poapActivityAutoProgress').textContent=pct(poapActivityProgress(a),0);
+  document.getElementById('poapActivityName').value=a.name; document.getElementById('poapActivityDescription').value=a.description||''; document.getElementById('poapActivityStart').value=a.startWeek; document.getElementById('poapActivityEnd').value=a.endWeek; document.getElementById('poapActivityStatus').value=a.status; document.getElementById('poapActivityPriority').value=a.priority; document.getElementById('poapActivityColour').value=a.colour||'green'; document.getElementById('poapActivityWeight').value=a.weight; document.getElementById('poapActivityAutoProgress').textContent=pct(poapActivityProgress(a),0);
   form.querySelectorAll('input,select,textarea,button').forEach(el=>{ if(el.id!=='deletePoapActivityBtn') el.disabled=isViewerMode(); });
 }
 function applyPoapEditor(){
   if(!isAdminMode()) return; const a=poapActivities.find(x=>x.id===selectedPoapActivityId); if(!a) return;
-  a.workstreamId=document.getElementById('poapActivityWorkstream').value; a.name=document.getElementById('poapActivityName').value.trim()||'Activity'; a.description=document.getElementById('poapActivityDescription').value; a.startWeek=clamp(document.getElementById('poapActivityStart').value,1,WEEK_COUNT,1); a.endWeek=clamp(document.getElementById('poapActivityEnd').value,a.startWeek,WEEK_COUNT,a.startWeek); a.status=document.getElementById('poapActivityStatus').value; a.priority=document.getElementById('poapActivityPriority').value; a.weight=Math.max(.1,Number(document.getElementById('poapActivityWeight').value)||1); markDirty(); renderAll();
+  a.workstreamId=document.getElementById('poapActivityWorkstream').value; a.name=document.getElementById('poapActivityName').value.trim()||'Activity'; a.description=document.getElementById('poapActivityDescription').value; a.startWeek=clamp(document.getElementById('poapActivityStart').value,1,WEEK_COUNT,1); a.endWeek=clamp(document.getElementById('poapActivityEnd').value,a.startWeek,WEEK_COUNT,a.startWeek); a.status=document.getElementById('poapActivityStatus').value; a.priority=document.getElementById('poapActivityPriority').value; a.colour=document.getElementById('poapActivityColour').value; a.weight=Math.max(.1,Number(document.getElementById('poapActivityWeight').value)||1); markDirty(); renderAll();
 }
 function bindPoapControls(){
+  document.getElementById('poapIntervalToggle')?.addEventListener('change',e=>{ settings.poapInterval=e.target.value==='month'?'month':'week'; markDirty(); renderPoap(); });
   document.getElementById('addPoapWorkstreamBtn')?.addEventListener('click',addPoapWorkstream); document.getElementById('addPoapActivityBtn')?.addEventListener('click',()=>addPoapActivity()); document.getElementById('savePoapBtn')?.addEventListener('click',()=>{ addAudit('POAP saved',`${poapWorkstreams.length} workstreams · ${poapActivities.length} activities · ${pct(calculatePoapOverallProgress(),0)} complete`); saveState(); renderAll(); }); document.getElementById('savePoapActivityBtn')?.addEventListener('click',applyPoapEditor); document.getElementById('deletePoapActivityBtn')?.addEventListener('click',()=>{ if(!isAdminMode()) return; const a=poapActivities.find(x=>x.id===selectedPoapActivityId); if(a&&confirm(`Delete ${a.name}?`)){ poapActivities=poapActivities.filter(x=>x.id!==a.id); selectedPoapActivityId=null; markDirty(); renderAll(); } });
 }
 function bindPoapBoardEvents(){
@@ -3208,3 +3256,15 @@ document.addEventListener("DOMContentLoaded",async()=>{ initialise(); await init
 </script>
 </body>
 </html>
+
+<style>
+.poap-month-label{position:absolute;top:0;bottom:0;border-left:1px solid #cfd9e7;padding:8px 4px;text-align:center;overflow:hidden;white-space:nowrap;background:linear-gradient(#f7f9fd,#eef3f9)}
+.poap-month-label strong{display:block;font-size:11px;color:var(--brand-dark)}
+.poap-month-label span{display:block;font-size:9px;color:var(--muted);margin-top:2px}
+.poap-activity .activity-progress{position:absolute;left:0;bottom:0;height:4px;background:rgba(255,255,255,.7);pointer-events:none}
+.poap-workstream-info .ws-title{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.poap-workstream-info .ws-progress{font-weight:850;color:var(--brand-dark)}
+.poap-track{overflow:hidden}
+.poap-activity{justify-content:flex-start;text-overflow:ellipsis}
+.poap-activity .activity-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;width:100%;text-align:center}
+</style>

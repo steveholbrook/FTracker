@@ -48,7 +48,7 @@ button.action,a.action{min-height:38px;border:0;border-radius:10px;background:va
 .wizard-step{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.10);color:#fff;cursor:pointer;text-align:left;min-height:60px;transition:background .12s ease,transform .12s ease}.wizard-step:hover{background:rgba(255,255,255,.17);transform:translateY(-1px)}.wizard-step.active{background:#fff;color:var(--brand-dark);border-color:#fff}.wizard-step.complete{border-color:rgba(34,197,94,.65)}.wizard-step.warning{border-color:rgba(245,158,11,.75)}
 .wizard-step .circle{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.18);font-weight:850;flex:0 0 auto}.wizard-step.active .circle{background:var(--brand-dark);color:#fff}.wizard-step.complete .circle{background:var(--green);color:#fff}.wizard-step.warning .circle{background:var(--amber);color:#fff}
 .wizard-step strong{display:block;font-size:13px}.wizard-step small{display:block;font-size:11px;opacity:.82;margin-top:2px;line-height:1.2}
-.workflow-card{display:grid;grid-template-columns:1.2fr 2fr;gap:18px;align-items:center;background:linear-gradient(135deg,#eef5ff,#fff);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:18px}.workflow-card h2{margin:0 0 6px;font-size:20px}.workflow-card p{margin:0;color:var(--muted)}.workflow-mini-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}.workflow-mini-step{padding:12px;border:1px solid #d8e3f4;border-radius:14px;background:#fff}.workflow-mini-step strong{display:block;color:var(--brand-dark)}.workflow-mini-step span{display:block;color:var(--muted);font-size:12px;margin-top:4px}.page-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:18px 0 0;padding:14px 2px}.page-actions .next-action{margin-left:auto}.section-kicker{display:inline-flex;align-items:center;gap:8px;color:var(--brand);font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:850}.empty-state{padding:24px;text-align:center;border:1px dashed #b9c6d8;border-radius:14px;background:#fbfdff;color:var(--muted)}.empty-state.empty-hero{padding:34px;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}.empty-state.empty-hero h3{margin:0;color:var(--brand-dark);font-size:20px}.empty-state.empty-hero p{margin:0;max-width:680px}.tab-button.gated,.wizard-step.gated{opacity:.54;cursor:not-allowed}.tab-button.gated:hover,.wizard-step.gated:hover{transform:none}button:disabled,button.action:disabled{opacity:.52;cursor:not-allowed;box-shadow:none}.keyboard-hint{display:inline-flex;gap:8px;align-items:center;margin-top:8px;color:var(--muted);font-size:12px}.keyboard-hint kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;background:#fff;padding:2px 6px;color:var(--brand-dark);font-weight:800}
+.workflow-card{display:grid;grid-template-columns:1.2fr 2fr;gap:18px;align-items:center;background:linear-gradient(135deg,#eef5ff,#fff);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:18px}.workflow-card h2{margin:0 0 6px;font-size:20px}.workflow-card p{margin:0;color:var(--muted)}.workflow-mini-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.workflow-mini-step{padding:12px;border:1px solid #d8e3f4;border-radius:14px;background:#fff}.workflow-mini-step strong{display:block;color:var(--brand-dark)}.workflow-mini-step span{display:block;color:var(--muted);font-size:12px;margin-top:4px}.page-actions{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:18px 0 0;padding:14px 2px}.page-actions .next-action{margin-left:auto}.section-kicker{display:inline-flex;align-items:center;gap:8px;color:var(--brand);font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:850}.empty-state{padding:24px;text-align:center;border:1px dashed #b9c6d8;border-radius:14px;background:#fbfdff;color:var(--muted)}.empty-state.empty-hero{padding:34px;min-height:220px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}.empty-state.empty-hero h3{margin:0;color:var(--brand-dark);font-size:20px}.empty-state.empty-hero p{margin:0;max-width:680px}.tab-button.gated,.wizard-step.gated{opacity:.54;cursor:not-allowed}.tab-button.gated:hover,.wizard-step.gated:hover{transform:none}button:disabled,button.action:disabled{opacity:.52;cursor:not-allowed;box-shadow:none}.keyboard-hint{display:inline-flex;gap:8px;align-items:center;margin-top:8px;color:var(--muted);font-size:12px}.keyboard-hint kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;background:#fff;padding:2px 6px;color:var(--brand-dark);font-weight:800}
 @media (max-width:1000px){.workflow-strip{grid-template-columns:repeat(2,1fr)}.workflow-card{grid-template-columns:1fr}.workflow-mini-steps{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:640px){.workflow-strip,.workflow-mini-steps{grid-template-columns:1fr}.tab-button{min-width:0;flex:1 1 46%}.page-actions{flex-direction:column;align-items:stretch}.page-actions .next-action{margin-left:0}.header-meta{justify-content:flex-start}}
 
@@ -155,10 +155,6 @@ canvas { font-size: var(--app-font-size) !important; }
 .evidence-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;background:#edf7f0;color:#17603a;padding:4px 8px;font-size:.75em;font-weight:700}
 .evidence-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:12px 0}.evidence-summary .evidence-item{border:1px solid #dbe3ef;border-radius:10px;padding:10px;background:#fafcff}.evidence-summary .label{font-size:.72em;text-transform:uppercase;color:#63748b}.evidence-summary .value{font-weight:800;margin-top:3px}
 
-
-/* POAP v4.0 */
-.poap-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:end}.poap-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px}.poap-board{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff}.poap-scale{display:grid;grid-template-columns:230px 1fr;background:#f3f6fb;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}.poap-scale-title{padding:12px;font-weight:850;border-right:1px solid var(--line)}.poap-week-scale{position:relative;height:54px;overflow:hidden}.poap-week-label{position:absolute;top:0;bottom:0;border-left:1px solid #dfe6f0;padding:7px 2px;font-size:10px;text-align:center;overflow:hidden;white-space:nowrap}.poap-week-label strong{display:block;font-size:10px;color:var(--brand-dark)}.poap-week-label span{display:block;color:var(--muted);font-size:9px}.poap-workstream{display:grid;grid-template-columns:230px 1fr;border-bottom:1px solid var(--line);min-height:78px}.poap-workstream:last-child{border-bottom:0}.poap-workstream-info{padding:10px 12px;border-right:1px solid var(--line);background:#fbfcff}.poap-workstream-info strong{display:block}.poap-workstream-info small{color:var(--muted)}.poap-workstream-actions{display:flex;gap:5px;margin-top:7px}.poap-workstream-actions button{padding:4px 7px;font-size:10px}.poap-track{position:relative;min-height:78px;background-image:linear-gradient(to right,rgba(205,215,228,.55) 1px,transparent 1px);background-size:calc(100% / var(--poap-weeks)) 100%}.poap-today{position:absolute;top:0;bottom:0;width:2px;background:#ef4444;z-index:2;pointer-events:none}.poap-today::before{content:'Today';position:absolute;top:2px;left:3px;color:#ef4444;font-size:9px;font-weight:800}.poap-activity{position:absolute;top:20px;height:38px;border:1px solid #72aa7f;border-radius:7px;background:#bfe7c5;box-shadow:0 2px 5px rgba(20,50,80,.13);display:flex;align-items:center;justify-content:center;padding:0 11px;cursor:grab;z-index:3;overflow:hidden;white-space:nowrap;font-size:11px;font-weight:750;color:#183c26;user-select:none}.poap-activity.status-not-started{background:#cfe0fb;border-color:#7ba2e1;color:#183a70}.poap-activity.status-at-risk{background:#ffe7aa;border-color:#e5ad30;color:#694807}.poap-activity.status-behind{background:#ffd0ca;border-color:#e67d71;color:#72261e}.poap-activity.status-completed{background:#aee0b8;border-color:#58a56a}.poap-activity.selected{outline:3px solid rgba(36,84,221,.25)}.poap-resize{position:absolute;top:0;bottom:0;width:8px;cursor:ew-resize}.poap-resize.left{left:0}.poap-resize.right{right:0}.poap-empty{padding:50px 20px;text-align:center;color:var(--muted)}.poap-editor{border:1px solid var(--line);border-radius:14px;background:#fff;box-shadow:var(--shadow);padding:16px;align-self:start;position:sticky;top:12px}.poap-editor h3{margin:0 0 12px}.poap-editor-grid{display:grid;gap:10px}.poap-editor .control input,.poap-editor .control select,.poap-editor .control textarea{width:100%}.poap-editor textarea{min-height:75px;resize:vertical}.poap-progress-card{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}.poap-progress-item{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fff}.poap-progress-item strong{font-size:22px;color:var(--brand-dark)}.poap-progress-bar{height:8px;border-radius:999px;background:#e7edf5;overflow:hidden;margin-top:7px}.poap-progress-bar i{display:block;height:100%;background:#36a852}.poap-legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--muted);margin-top:10px}.poap-legend span{display:inline-flex;align-items:center;gap:5px}.poap-legend i{width:11px;height:11px;border-radius:3px;border:1px solid rgba(0,0,0,.15)}
-@media(max-width:1100px){.poap-layout{grid-template-columns:1fr}.poap-editor{position:static}.poap-progress-card{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -211,10 +207,9 @@ canvas { font-size: var(--app-font-size) !important; }
     </div>
     <div class="workflow-strip no-print" aria-label="Guided workflow">
       <button class="wizard-step active" data-target="dashboardView" data-step="dashboard"><span class="circle">1</span><span><strong>Dashboard</strong><small id="wizardStatusDashboard">Set project controls</small></span></button>
-      <button class="wizard-step" data-target="poapView" data-step="poap"><span class="circle">2</span><span><strong>POAP</strong><small id="wizardStatusPoap">Build project plan</small></span></button>
-      <button class="wizard-step" data-target="forecastView" data-step="forecast"><span class="circle">3</span><span><strong>Forecast</strong><small id="wizardStatusForecast">Load locked baseline</small></span></button>
-      <button class="wizard-step" data-target="actualsView" data-step="actuals"><span class="circle">4</span><span><strong>Actuals</strong><small id="wizardStatusActuals">Enter weekly effort</small></span></button>
-      <button class="wizard-step" data-target="invoicesView" data-step="invoices"><span class="circle">5</span><span><strong>Invoices</strong><small id="wizardStatusInvoices">Create governed billing</small></span></button>
+      <button class="wizard-step" data-target="forecastView" data-step="forecast"><span class="circle">2</span><span><strong>Forecast</strong><small id="wizardStatusForecast">Load locked baseline</small></span></button>
+      <button class="wizard-step" data-target="actualsView" data-step="actuals"><span class="circle">3</span><span><strong>Actuals</strong><small id="wizardStatusActuals">Enter weekly effort</small></span></button>
+      <button class="wizard-step" data-target="invoicesView" data-step="invoices"><span class="circle">4</span><span><strong>Invoices</strong><small id="wizardStatusInvoices">Create governed billing</small></span></button>
     </div>
   </div>
 <div class="viewer-banner no-print">Viewer mode: this project is read-only. Data load, edit, reset, invoice and save controls are disabled.</div>
@@ -225,15 +220,14 @@ canvas { font-size: var(--app-font-size) !important; }
   <div class="workflow-card no-print">
     <div>
       <div class="section-kicker">Guided workflow</div>
-      <h2>Complete the tracker in five controlled steps</h2>
-      <p>Start with project controls, maintain the Plan on a Page, load the locked forecast baseline, enter weekly actuals, then generate governed invoices.</p>
+      <h2>Complete the tracker in four controlled steps</h2>
+      <p>Start with project controls, load the locked forecast baseline, enter weekly actuals, then generate governed invoices.</p>
     </div>
     <div class="workflow-mini-steps">
       <div class="workflow-mini-step"><strong>1. Dashboard</strong><span>Set start date, horizon and completion.</span></div>
-      <div class="workflow-mini-step"><strong>2. POAP</strong><span>Build the delivery plan and derive progress.</span></div>
-      <div class="workflow-mini-step"><strong>3. Forecast</strong><span>Load the approved baseline template.</span></div>
-      <div class="workflow-mini-step"><strong>4. Actuals</strong><span>Maintain weekly effort by named resource.</span></div>
-      <div class="workflow-mini-step"><strong>5. Invoices</strong><span>Create code-specific invoice periods.</span></div>
+      <div class="workflow-mini-step"><strong>2. Forecast</strong><span>Load the approved baseline template.</span></div>
+      <div class="workflow-mini-step"><strong>3. Actuals</strong><span>Maintain weekly effort by named resource.</span></div>
+      <div class="workflow-mini-step"><strong>4. Invoices</strong><span>Create code-specific invoice periods.</span></div>
     </div>
   </div>
   <div class="panel">
@@ -243,7 +237,7 @@ canvas { font-size: var(--app-font-size) !important; }
         <label class="control"><span>Start Date</span><input id="startDateInput" type="date"></label>
         <span class="meta-pill light">Derived Week: <strong id="derivedCurrentWeekLabel">—</strong></span>
         <label class="control"><span>Number of Weeks</span><input id="numberOfWeeksInput" type="number" min="1" step="1"></label>
-        <label class="control"><span>Progress Source</span><select id="progressSourceInput"><option value="poap">POAP automatic</option><option value="manual">Manual</option></select></label><label class="control"><span>% Complete</span><input id="percentCompleteInput" type="number" min="0" max="100" step="0.1"></label>
+        <label class="control"><span>% Complete</span><input id="percentCompleteInput" type="number" min="0" max="100" step="0.1"></label>
         <button class="action admin-only" id="saveDashboardBtn">Save Dashboard Inputs</button>
         <button class="action secondary viewer-allowed" id="customerReportBtn">Customer PDF / Print Pack</button>
         <button class="action danger admin-only" id="resetApplicationBtn">Reset Application</button>
@@ -271,46 +265,7 @@ canvas { font-size: var(--app-font-size) !important; }
     <div class="panel-header"><div><h2>Role-Level Variance</h2><p>Positive variance means actual days are above forecast to date.</p></div></div>
     <div class="panel-body"><div class="table-wrap"><table id="roleVarianceTable"></table></div></div>
   </div>
-  <div class="page-actions no-print"><span class="small-note">Next step: build or review the Plan on a Page.</span><button class="action next-action wizard-next" data-target="poapView">Next: POAP</button></div>
-</section>
-
-
-<section id="poapView" class="view">
-  <div class="panel">
-    <div class="panel-header">
-      <div><h2>POAP — Plan on a Page</h2><p>Create workstreams and schedule activities against the project timeline. Drag activities to move them and drag either edge to resize.</p></div>
-      <div class="poap-toolbar no-print">
-        <button class="action admin-only" id="addPoapWorkstreamBtn">Add Workstream</button>
-        <button class="action secondary admin-only" id="addPoapActivityBtn">Add Activity</button>
-        <button class="action secondary admin-only" id="savePoapBtn">Save POAP</button>
-      </div>
-    </div>
-    <div class="panel-body">
-      <div class="poap-progress-card" id="poapProgressSummary"></div>
-      <div class="poap-layout">
-        <div>
-          <div class="poap-board" id="poapBoard"></div>
-          <div class="poap-legend"><span><i style="background:#aee0b8"></i>Completed</span><span><i style="background:#bfe7c5"></i>In progress</span><span><i style="background:#ffe7aa"></i>At risk</span><span><i style="background:#ffd0ca"></i>Behind</span><span><i style="background:#cfe0fb"></i>Not started</span></div>
-        </div>
-        <aside class="poap-editor" id="poapEditor">
-          <h3>Activity details</h3>
-          <div id="poapEditorEmpty" class="small-note">Select an activity, or add a new activity, to edit its details.</div>
-          <div id="poapEditorForm" class="poap-editor-grid" hidden>
-            <label class="control"><span>Workstream</span><select id="poapActivityWorkstream"></select></label>
-            <label class="control"><span>Activity Name</span><input id="poapActivityName" type="text"></label>
-            <label class="control"><span>Description</span><textarea id="poapActivityDescription"></textarea></label>
-            <div class="two-col"><label class="control"><span>Start Week</span><input id="poapActivityStart" type="number" min="1"></label><label class="control"><span>End Week</span><input id="poapActivityEnd" type="number" min="1"></label></div>
-            <label class="control"><span>Status</span><select id="poapActivityStatus"><option>Not Started</option><option>In Progress</option><option>At Risk</option><option>Behind</option><option>Completed</option></select></label>
-            <label class="control"><span>Priority</span><select id="poapActivityPriority"><option>Low</option><option selected>Medium</option><option>High</option></select></label>
-            <label class="control"><span>Weight</span><input id="poapActivityWeight" type="number" min="0.1" step="0.1" value="1"></label>
-            <div class="login-actions"><button class="action admin-only" id="savePoapActivityBtn">Apply</button><button class="action danger admin-only" id="deletePoapActivityBtn">Delete</button></div>
-            <div class="small-note">Auto progress: <strong id="poapActivityAutoProgress">0%</strong>, based on planned dates and today's date.</div>
-          </div>
-        </aside>
-      </div>
-    </div>
-  </div>
-  <div class="page-actions no-print"><button class="action secondary wizard-back" data-target="dashboardView">Back: Dashboard</button><button class="action next-action wizard-next" data-target="forecastView">Next: Forecast</button></div>
+  <div class="page-actions no-print"><span class="small-note">Next step: load or confirm the locked forecast baseline.</span><button class="action next-action wizard-next" data-target="forecastView">Next: Forecast</button></div>
 </section>
 
 <section id="actualsView" class="view">
@@ -436,7 +391,7 @@ canvas { font-size: var(--app-font-size) !important; }
       <div class="panel-body"><div class="table-wrap"><table id="auditTrailTable" class="audit-table"></table></div></div>
     </div>
   </div>
-  <div class="page-actions no-print"><button class="action secondary wizard-back" data-target="poapView">Back: POAP</button><button class="action next-action wizard-next" data-target="actualsView">Next: Actuals</button></div>
+  <div class="page-actions no-print"><button class="action secondary wizard-back" data-target="dashboardView">Back: Dashboard</button><button class="action next-action wizard-next" data-target="actualsView">Next: Actuals</button></div>
 </section>
 </main>
 
@@ -447,7 +402,7 @@ canvas { font-size: var(--app-font-size) !important; }
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
 <script>
 "use strict";
-const APP_VERSION = "4.0.0-multi-project-poap";
+const APP_VERSION = "3.11.0-multi-project";
 const STORAGE_KEY = "financialTracker.blank.v2";
 const FIREBASE_SETTINGS_KEY = STORAGE_KEY + ".firebase";
 const DEFAULT_FIREBASE_PROJECT_KEY = "gwf";
@@ -473,16 +428,13 @@ const baseResources = [];
 let forecastBaseline = [];
 let baselineMeta = { source: "No forecast loaded", loadedAt: "", fileName: "No forecast loaded", weekCount: 0, dataWeekCount: 0 };
 let resources = [];
-let settings = { currentWeek: 1, startDate: "", percentComplete: 0, progressMode: "poap", lastSaved: null, actualsInterval: "week", fontSize: 14, displayPrecision: "standard", numberOfWeeks: WEEK_COUNT, invoiceEndWeek: 1, invoiceCode: "", invoiceExportMode: "customer", invoicePeriodType: "week", invoiceStartValue: "", invoiceEndValue: "" };
+let settings = { currentWeek: 1, startDate: "", percentComplete: 0, lastSaved: null, actualsInterval: "week", fontSize: 14, displayPrecision: "standard", numberOfWeeks: WEEK_COUNT, invoiceEndWeek: 1, invoiceCode: "", invoiceExportMode: "customer", invoicePeriodType: "week", invoiceStartValue: "", invoiceEndValue: "" };
 const invoiceMappings = [];
 let changeLog = [];
 let forecastChangeRequests = [];
 let invoicePeriods = [];
 let invoiceCodeConfigs = {};
 let lastFiReconciliation = null;
-let poapWorkstreams = [];
-let poapActivities = [];
-let selectedPoapActivityId = null;
 const LOCKED_INVOICE_STATUSES = ["Sent to customer","Paid"];
 const INVOICE_STATUSES = ["Draft","PM reviewed","Finance reviewed","Sent to customer","Paid"];
 let dirty = false;
@@ -543,7 +495,7 @@ async function loadProjectRegistry(){
   }
 }
 async function saveProjectRegistry(){ try{ projectRegistry=normaliseProjectRegistry(projectRegistry); await initialiseFirebaseFromSavedConfig(false); const ref=await registryDocRef(); if(ref) await ref.set({projects:projectRegistry, updatedAt: firebase.firestore.FieldValue.serverTimestamp()},{merge:false}); }catch(e){ console.warn("Project registry save failed", e.message); } }
-function resetInMemoryState(){ forecastBaseline=[]; resources=[]; baselineMeta={ source:"No forecast loaded", loadedAt:"", fileName:"No forecast loaded", weekCount:0, dataWeekCount:0 }; forecastChangeRequests=[]; invoicePeriods=[]; invoiceCodeConfigs={}; changeLog=[]; lastFiReconciliation=null; poapWorkstreams=[]; poapActivities=[]; selectedPoapActivityId=null; setWeekHorizon(50,{allowBelowData:true,reason:"Project switch"}); settings={currentWeek:1,startDate:"",percentComplete:0,progressMode:"poap",lastSaved:null,actualsInterval:"week",fontSize:14,displayPrecision:"standard",numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer"}; dirty=false; }
+function resetInMemoryState(){ forecastBaseline=[]; resources=[]; baselineMeta={ source:"No forecast loaded", loadedAt:"", fileName:"No forecast loaded", weekCount:0, dataWeekCount:0 }; forecastChangeRequests=[]; invoicePeriods=[]; invoiceCodeConfigs={}; changeLog=[]; lastFiReconciliation=null; setWeekHorizon(50,{allowBelowData:true,reason:"Project switch"}); settings={currentWeek:1,startDate:"",percentComplete:0,lastSaved:null,actualsInterval:"week",fontSize:14,displayPrecision:"standard",numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer"}; dirty=false; }
 async function openSelectedProject(){
   clearLoginError();
   projectRegistry = normaliseProjectRegistry(projectRegistry);
@@ -745,25 +697,6 @@ function calculateBAC(){ return getForecastResources().reduce((s,r)=>s+(Number(r
 function sumByWeek(resource,field,startWeek=1,endWeek=WEEK_COUNT){ let total=0; for(let w=startWeek;w<=endWeek;w++){ total+=Number(resource[field]?.[String(w)]||0); } return total; }
 function calculateActualCostToWeek(currentWeek){ return resources.reduce((s,r)=>s+sumByWeek(r,"actualByWeek",1,currentWeek)*(Number(r.dayRate)||0),0); }
 function calculateForecastCostToWeek(currentWeek){ return getForecastResources().reduce((s,r)=>s+sumByWeek(r,"forecastByWeek",1,currentWeek)*(Number(r.dayRate)||0),0); }
-
-function normalisePoapWorkstream(w){ return {id:String(w?.id||`ws-${Date.now()}-${Math.random().toString(36).slice(2,7)}`),name:String(w?.name||"Workstream"),order:Number(w?.order)||0}; }
-function normalisePoapActivity(a){ if(!a) return null; return {id:String(a.id||`act-${Date.now()}-${Math.random().toString(36).slice(2,7)}`),workstreamId:String(a.workstreamId||""),name:String(a.name||"Activity"),description:String(a.description||""),startWeek:clamp(a.startWeek,1,WEEK_COUNT,1),endWeek:clamp(a.endWeek,1,WEEK_COUNT,1),status:String(a.status||"Not Started"),priority:String(a.priority||"Medium"),weight:Math.max(.1,Number(a.weight)||1)}; }
-function poapActivityProgress(a, today=new Date()){
-  if(!settings.startDate) return 0;
-  const projectStart=parseLocalIsoDate(settings.startDate); if(!projectStart) return 0;
-  const start=new Date(projectStart); start.setDate(start.getDate()+(Math.max(1,a.startWeek)-1)*7);
-  const end=new Date(projectStart); end.setDate(end.getDate()+(Math.max(a.startWeek,a.endWeek)-1)*7+6); end.setHours(23,59,59,999);
-  const t=new Date(today); if(t<start) return 0; if(t>end) return 100;
-  const span=Math.max(1,end-start); return Math.max(0,Math.min(100,((t-start)/span)*100));
-}
-function calculatePoapOverallProgress(){
-  if(!poapActivities.length) return 0;
-  let weighted=0,totalWeight=0;
-  poapActivities.forEach(a=>{ const duration=Math.max(1,a.endWeek-a.startWeek+1); const weight=Math.max(.1,Number(a.weight)||1)*duration; weighted+=poapActivityProgress(a)*weight; totalWeight+=weight; });
-  return totalWeight?weighted/totalWeight:0;
-}
-function effectivePercentComplete(){ return settings.progressMode==="poap" && poapActivities.length ? calculatePoapOverallProgress() : Number(settings.percentComplete)||0; }
-
 function calculateEarnedValue(bac,percentComplete){ return bac*(Number(percentComplete)||0)/100; }
 function calculateETC(bac,earnedValue){ return bac-earnedValue; }
 function calculateEAC(actualCost,etc){ return actualCost+etc; }
@@ -784,7 +717,7 @@ function calculateRoleVariance(resource,currentWeek){
 function metrics(){
   syncCurrentWeekFromStartDate();
   const currentWeek=clamp(settings.currentWeek,1,WEEK_COUNT,1);
-  const bac=calculateBAC(), ac=calculateActualCostToWeek(currentWeek), ev=calculateEarnedValue(bac,effectivePercentComplete()), etc=calculateETC(bac,ev), eac=calculateEAC(ac,etc), vac=calculateVAC(bac,eac);
+  const bac=calculateBAC(), ac=calculateActualCostToWeek(currentWeek), ev=calculateEarnedValue(bac,settings.percentComplete), etc=calculateETC(bac,ev), eac=calculateEAC(ac,etc), vac=calculateVAC(bac,eac);
   const forecastDaysTotal=calculateForecastDaysTotal(), actualDaysToDate=calculateActualDaysToWeek(currentWeek), forecastDaysToDate=calculateForecastDaysToWeek(currentWeek);
   return {currentWeek,bac,ac,ev,etc,eac,vac,forecastDaysTotal,actualDaysToDate,forecastDaysToDate,actualForecastVariance:actualDaysToDate-forecastDaysToDate,actualCostToDate:ac,forecastCostToDate:calculateForecastCostToWeek(currentWeek),currentWeekActualDays:calculateCurrentWeekActualDays(currentWeek),currentWeekForecastDays:calculateCurrentWeekForecastDays(currentWeek),remainingForecastDays:Math.max(0,forecastDaysTotal-actualDaysToDate)};
 }
@@ -808,9 +741,6 @@ function buildStatePayload(){
     currentWeek:settings.currentWeek,
     startDate:settings.startDate,
     percentComplete:settings.percentComplete,
-    progressMode:settings.progressMode,
-    poapWorkstreams:clone(poapWorkstreams),
-    poapActivities:clone(poapActivities),
     invoiceEndWeek:settings.invoiceEndWeek,
     invoicePeriodType:settings.invoicePeriodType,
     invoiceStartValue:settings.invoiceStartValue,
@@ -941,9 +871,6 @@ function applyStatePayload(payload){
   settings.startDate=payload.startDate || "";
   syncCurrentWeekFromStartDate();
   settings.percentComplete=clamp(payload.percentComplete,0,100,0);
-  settings.progressMode=["poap","manual"].includes(payload.progressMode)?payload.progressMode:"poap";
-  poapWorkstreams=Array.isArray(payload.poapWorkstreams)?payload.poapWorkstreams.map(normalisePoapWorkstream):[];
-  poapActivities=Array.isArray(payload.poapActivities)?payload.poapActivities.map(normalisePoapActivity).filter(Boolean):[];
   if(payload.invoiceEndWeek!==undefined) settings.invoiceEndWeek=clamp(payload.invoiceEndWeek,1,WEEK_COUNT,settings.invoiceEndWeek||settings.currentWeek);
   else settings.invoiceEndWeek=clamp(settings.invoiceEndWeek||settings.currentWeek,1,WEEK_COUNT,settings.currentWeek);
   settings.invoicePeriodType=["week","month"].includes(payload.invoicePeriodType)?payload.invoicePeriodType:"week";
@@ -1026,9 +953,6 @@ function exportActualsJson(){
     currentWeek:settings.currentWeek,
     startDate:settings.startDate,
     percentComplete:settings.percentComplete,
-    progressMode:settings.progressMode,
-    poapWorkstreams:clone(poapWorkstreams),
-    poapActivities:clone(poapActivities),
     invoiceEndWeek:settings.invoiceEndWeek,
     invoicePeriodType:settings.invoicePeriodType,
     invoiceStartValue:settings.invoiceStartValue,
@@ -1063,9 +987,6 @@ function importActualsJson(file){
       }
       if(payload.startDate!==undefined){ settings.startDate=payload.startDate || settings.startDate; syncCurrentWeekFromStartDate(); }
       if(payload.percentComplete!==undefined) settings.percentComplete=clamp(payload.percentComplete,0,100,settings.percentComplete);
-      settings.progressMode=["poap","manual"].includes(payload.progressMode)?payload.progressMode:settings.progressMode;
-      if(Array.isArray(payload.poapWorkstreams)) poapWorkstreams=payload.poapWorkstreams.map(normalisePoapWorkstream);
-      if(Array.isArray(payload.poapActivities)) poapActivities=payload.poapActivities.map(normalisePoapActivity).filter(Boolean);
       if(payload.invoiceEndWeek!==undefined) settings.invoiceEndWeek=clamp(payload.invoiceEndWeek,1,WEEK_COUNT,settings.invoiceEndWeek||settings.currentWeek);
       if(payload.invoiceCode!==undefined) settings.invoiceCode=String(payload.invoiceCode||"");
       if(payload.invoiceExportMode!==undefined) settings.invoiceExportMode=["customer","internal"].includes(payload.invoiceExportMode)?payload.invoiceExportMode:"customer";
@@ -1094,7 +1015,7 @@ function downloadFile(filename,content,mime){ const blob=new Blob([content],{typ
 function updateHeader(){
   updateProjectHeader();
   document.getElementById("headerCurrentWeek").textContent=settings.currentWeek;
-  document.getElementById("headerPercentComplete").textContent=pct(effectivePercentComplete(),1);
+  document.getElementById("headerPercentComplete").textContent=pct(settings.percentComplete,1);
   document.getElementById("headerLastSaved").textContent=settings.lastSaved?new Date(settings.lastSaved).toLocaleString("en-AU"):(dirty?"Unsaved changes":"Not saved");
   const fs=document.getElementById("fontSizeSlider"), fv=document.getElementById("fontSizeValue");
   if(fs) fs.value=settings.fontSize;
@@ -1197,7 +1118,7 @@ function repopulateInvoiceEndWeekOptions(){
 }
 
 
-function sectionLabel(target){ return ({dashboardView:"Dashboard",poapView:"POAP",forecastView:"Forecast",actualsView:"Actuals",invoicesView:"Invoices"})[target]||target; }
+function sectionLabel(target){ return ({dashboardView:"Dashboard",forecastView:"Forecast",actualsView:"Actuals",invoicesView:"Invoices"})[target]||target; }
 function isForecastLoaded(){ return forecastBaseline.length>0; }
 function actualDaysForCode(code,fromWeek=1,toWeek=WEEK_COUNT){
   const target=String(code||"").trim();
@@ -1231,7 +1152,6 @@ function updateWizard(){
   const forecastLoaded=isForecastLoaded();
   const state={
     dashboard:{complete:!!settings.startDate, status:settings.startDate?`Start ${dateLabel(settings.startDate)} · W${settings.currentWeek}`:"Set Week 1 Monday"},
-    poap:{complete:poapActivities.length>0, status:poapActivities.length?`${poapActivities.length} activities · ${pct(calculatePoapOverallProgress(),0)} complete`:"Add workstreams and activities"},
     forecast:{complete:forecastLoaded, status:forecastLoaded?`${forecastBaseline.length} rows · W1-W${baselineMeta.weekCount||WEEK_COUNT}`:"Load locked baseline"},
     actuals:{complete:hasAnyActuals(), status:!forecastLoaded?"Forecast required first":(hasAnyActuals()?`${num(calculateActualDaysToWeek(WEEK_COUNT),1)} actual days entered`:"Enter actual effort")},
     invoices:{complete:invoicePeriods.length>0, status:invoicePeriods.length?`${invoicePeriods.length} saved record(s)`:(hasAnyActuals()?"Create invoice period":"Actuals required before invoice")}
@@ -1272,9 +1192,7 @@ function initialise(){
   const invoiceFmt=document.getElementById("invoiceNumberFormatInput"); if(invoiceFmt){ invoiceFmt.addEventListener("change",()=>{ saveInvoiceConfigFromInputs(); addAudit("Invoice number format updated", `${settings.invoiceCode||"—"} · ${invoiceFmt.value||"AR-{CODE}-{SEQ}"}`); markDirty(); renderInvoices(); }); }
   const invoicePo=document.getElementById("invoicePoValueInput"); if(invoicePo){ invoicePo.addEventListener("change",()=>{ saveInvoiceConfigFromInputs(); addAudit("PO value updated", `${settings.invoiceCode||"—"} · ${currency(Number(invoicePo.value)||0)}`); markDirty(); renderInvoices(); }); }
   document.getElementById("saveInvoicePeriodBtn")?.addEventListener("click",()=>saveInvoicePeriod());
-  const progressSourceInput=document.getElementById("progressSourceInput"); if(progressSourceInput){ progressSourceInput.value=settings.progressMode||"poap"; progressSourceInput.addEventListener("change",()=>{ settings.progressMode=progressSourceInput.value; markDirty(); renderAll(); }); }
-  const pctInput=document.getElementById("percentCompleteInput"); pctInput.addEventListener("input",()=>{ if(settings.progressMode==="poap"&&poapActivities.length) return; settings.percentComplete=clamp(pctInput.value,0,100,0); markDirty(); renderDashboard(); renderGovernance(); });
-  bindPoapControls();
+  const pctInput=document.getElementById("percentCompleteInput"); pctInput.addEventListener("input",()=>{ settings.percentComplete=clamp(pctInput.value,0,100,0); markDirty(); renderDashboard(); renderGovernance(); });
   const interval=document.getElementById("actualsIntervalToggle"); interval.addEventListener("change",()=>{ settings.actualsInterval=interval.value; markDirty(); renderActualsTable(); renderGovernance(); });
   const fontSlider=document.getElementById("fontSizeSlider"); fontSlider.addEventListener("input",()=>{ settings.fontSize=clamp(fontSlider.value,6,18,14); applyFontSize(); markDirty(); });
   const precisionSelect=document.getElementById("displayPrecisionSelect"); if(precisionSelect){ precisionSelect.value=settings.displayPrecision||"standard"; precisionSelect.addEventListener("change",()=>{ settings.displayPrecision=["whole","standard","finance"].includes(precisionSelect.value)?precisionSelect.value:"standard"; addAudit("Display precision updated", settings.displayPrecision); markDirty(); renderAll(); }); }
@@ -1283,7 +1201,7 @@ function initialise(){
   document.getElementById("firebaseConnectBtn")?.addEventListener("click", async()=>{ try{ await initialiseFirebaseFromInputs(); }catch(e){} });
   document.getElementById("firebaseLoadBtn")?.addEventListener("click", async()=>{ await initialiseFirebaseFromInputs().catch(()=>false); await loadState(); dirty=false; renderAll(); });
   document.getElementById("firebaseSaveBtn")?.addEventListener("click", async()=>{ await initialiseFirebaseFromInputs().catch(()=>false); addAudit("Manual cloud save", `Project ${activeProject.name || activeProjectKey()}`); saveState(); renderAll(); });
-  document.getElementById("saveDashboardBtn").addEventListener("click",()=>{ addAudit("Dashboard inputs saved", `Start Date ${settings.startDate}, derived W${settings.currentWeek}, ${pct(effectivePercentComplete(),1)} complete`); saveState(); renderAll(); });
+  document.getElementById("saveDashboardBtn").addEventListener("click",()=>{ addAudit("Dashboard inputs saved", `Start Date ${settings.startDate}, derived W${settings.currentWeek}, ${pct(settings.percentComplete,1)} complete`); saveState(); renderAll(); });
   document.getElementById("customerReportBtn").addEventListener("click",printCustomerReport);
   document.getElementById("printAllInvoicesBtn")?.addEventListener("click",()=>printAllProposedInvoices());
   document.getElementById("saveActualsBtn").addEventListener("click",()=>{ addAudit("Actuals saved", `${resources.length} actual rows · Derived W${settings.currentWeek}`); saveState(); renderAll(); });
@@ -1318,15 +1236,15 @@ function resetToBlankApplicationState(reason="Application reset"){
   forecastBaseline=[];
   resources=[];
   baselineMeta={ source:"No forecast loaded", loadedAt:"", fileName:"No forecast loaded", weekCount:0, dataWeekCount:0 };
-  forecastChangeRequests=[]; invoicePeriods=[]; invoiceCodeConfigs={}; changeLog=[]; poapWorkstreams=[]; poapActivities=[]; selectedPoapActivityId=null;
-  settings={currentWeek:1,startDate:"",percentComplete:0,progressMode:"poap",lastSaved:null,actualsInterval:"week",fontSize:14,displayPrecision:"standard",numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer"};
+  forecastChangeRequests=[]; invoicePeriods=[]; invoiceCodeConfigs={}; changeLog=[];
+  settings={currentWeek:1,startDate:"",percentComplete:0,lastSaved:null,actualsInterval:"week",fontSize:14,displayPrecision:"standard",numberOfWeeks:50,invoiceEndWeek:1,invoiceCode:"",invoiceExportMode:"customer"};
   weekDates={};
   setWeekHorizon(50,{allowBelowData:true,reason});
   syncCurrentWeekFromStartDate();
   dirty=false; applyFontSize(); renderAll();
 }
 function resetApplicationData(){
-  if(!confirm("Reset the whole application? This removes the POAP, saved actuals, loaded forecast, invoices, invoice configuration, change requests and audit history so a new forecast can be loaded. Export a JSON backup first if needed.")) return;
+  if(!confirm("Reset the whole application? This removes saved actuals, loaded forecast, invoices, invoice configuration, change requests and audit history so a new forecast can be loaded. Export a JSON backup first if needed.")) return;
   resetToBlankApplicationState("Full application reset");
   saveState();
   showMessage("actualsMessage","Application reset complete. Load a new Forecast spreadsheet to start a fresh tracker.","warn");
@@ -1340,23 +1258,21 @@ function renderAll(){
   const startInput=document.getElementById("startDateInput"); if(startInput) startInput.value=settings.startDate||"";
   const derivedLabel=document.getElementById("derivedCurrentWeekLabel"); if(derivedLabel) derivedLabel.textContent=`W${settings.currentWeek}`;
   const weekCountInput=document.getElementById("numberOfWeeksInput"); if(weekCountInput){ weekCountInput.value=WEEK_COUNT; weekCountInput.min=minimumAllowedWeekCount(); }
-  document.getElementById("percentCompleteInput").value=effectivePercentComplete();
-  const progressSource=document.getElementById("progressSourceInput"); if(progressSource) progressSource.value=settings.progressMode||"poap";
-  const pctEl=document.getElementById("percentCompleteInput"); if(pctEl) pctEl.disabled=settings.progressMode==="poap" && poapActivities.length>0;
+  document.getElementById("percentCompleteInput").value=settings.percentComplete;
   const interval=document.getElementById("actualsIntervalToggle"); if(interval) interval.value=settings.actualsInterval;
   const invoiceCode=document.getElementById("invoiceCodeInput"); if(invoiceCode) invoiceCode.value=settings.invoiceCode||"";
   const invoiceMode=document.getElementById("invoiceExportModeInput"); if(invoiceMode) invoiceMode.value=settings.invoiceExportMode||"customer";
-  applyFontSize(); updateHeader(); updateIntervalLabels(); populateFilters(); renderDashboard(); renderPoap(); renderActualsTable(); renderInvoices(); renderForecastTable(); renderGovernance(); updateWizard(); setTimeout(syncActualsScrollSliders,0);
+  applyFontSize(); updateHeader(); updateIntervalLabels(); populateFilters(); renderDashboard(); renderActualsTable(); renderInvoices(); renderForecastTable(); renderGovernance(); updateWizard(); setTimeout(syncActualsScrollSliders,0);
 }
 function renderDashboard(){
   const m=metrics(), ds=statusDays(m.actualDaysToDate,m.forecastDaysToDate), vs=statusVAC(m.vac,m.bac);
-  const startInput=document.getElementById("startDateInput"); if(startInput) startInput.value=settings.startDate||""; const derivedLabel=document.getElementById("derivedCurrentWeekLabel"); if(derivedLabel) derivedLabel.textContent=`W${m.currentWeek}`; const weekCountInput=document.getElementById("numberOfWeeksInput"); if(weekCountInput){ weekCountInput.value=WEEK_COUNT; weekCountInput.min=minimumAllowedWeekCount(); } document.getElementById("percentCompleteInput").value=effectivePercentComplete();
+  const startInput=document.getElementById("startDateInput"); if(startInput) startInput.value=settings.startDate||""; const derivedLabel=document.getElementById("derivedCurrentWeekLabel"); if(derivedLabel) derivedLabel.textContent=`W${m.currentWeek}`; const weekCountInput=document.getElementById("numberOfWeeksInput"); if(weekCountInput){ weekCountInput.value=WEEK_COUNT; weekCountInput.min=minimumAllowedWeekCount(); } document.getElementById("percentCompleteInput").value=settings.percentComplete;
   const costVariance=m.actualCostToDate-m.forecastCostToDate;
   const costStatus=costVariance>m.forecastCostToDate*.10?"red":(costVariance>m.forecastCostToDate*.05?"amber":"green");
   const kpis=[
     ["Budget at Completion",currency(m.bac),"BAC · locked forecast total","BAC is the total authorised baseline budget from the Forecast sheet.",vs.level],
     ["Actual Cost to Week",currency(m.ac),`AC · through Week ${m.currentWeek}`,"AC is actual days to date multiplied by each role day rate.",""],
-    ["% Complete",pct(effectivePercentComplete(),1),settings.progressMode==="poap"&&poapActivities.length?"Automatically derived from POAP":"Manual dashboard input",settings.progressMode==="poap"&&poapActivities.length?"Duration-weighted progress calculated from POAP activity dates and today.":"The manual progress input used to calculate earned value.",""],
+    ["% Complete",pct(settings.percentComplete,1),"Manual dashboard input","The progress input used to calculate earned value.",""],
     ["Earned Value",currency(m.ev),"EV = BAC × % Complete","EV is the value of work earned based on current progress.",""],
     ["Estimate to Complete",currency(m.etc),"ETC = BAC − EV","Remaining value of work still to be earned.",""],
     ["Estimate at Completion",currency(m.eac),"EAC = AC + ETC","Expected final cost using current actuals plus remaining estimate.",vs.level],
@@ -2017,83 +1933,6 @@ function customerDetailRows(lines){
   const rows=aggregateInvoiceDetailForCustomer(lines);
   return rows.map(d=>`<tr><td>${esc(d.invoiceNo)}</td><td>${esc(d.code)}</td><td>${esc(d.stream)}</td><td>${esc(d.role)}</td><td class="num">${num(d.days,1)}</td><td class="num">${currency(d.amount)}</td></tr>`).join("") || '<tr><td colspan="6">No actuals recorded for this invoice period/code.</td></tr>';
 }
-
-function addPoapWorkstream(){
-  if(!isAdminMode()) return;
-  const name=prompt("Workstream name:","New Workstream"); if(!name||!name.trim()) return;
-  poapWorkstreams.push({id:`ws-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,name:name.trim(),order:poapWorkstreams.length});
-  addAudit("POAP workstream added",name.trim()); markDirty(); renderPoap(); updateWizard();
-}
-function addPoapActivity(workstreamId){
-  if(!isAdminMode()) return;
-  if(!poapWorkstreams.length){ alert("Add a workstream before creating an activity."); return; }
-  const ws=workstreamId||poapWorkstreams[0].id;
-  const start=Math.max(1,settings.currentWeek||1), end=Math.min(WEEK_COUNT,start+3);
-  const a=normalisePoapActivity({workstreamId:ws,name:"New Activity",startWeek:start,endWeek:end,status:"Not Started",priority:"Medium",weight:1});
-  poapActivities.push(a); selectedPoapActivityId=a.id; markDirty(); renderPoap(); updateWizard();
-}
-function removePoapWorkstream(id){
-  if(!isAdminMode()) return;
-  const ws=poapWorkstreams.find(w=>w.id===id); if(!ws) return;
-  if(!confirm(`Delete ${ws.name} and all its activities?`)) return;
-  poapWorkstreams=poapWorkstreams.filter(w=>w.id!==id); poapActivities=poapActivities.filter(a=>a.workstreamId!==id); selectedPoapActivityId=null; markDirty(); renderAll();
-}
-function selectPoapActivity(id){ selectedPoapActivityId=id; renderPoapEditor(); document.querySelectorAll('.poap-activity').forEach(el=>el.classList.toggle('selected',el.dataset.id===id)); }
-function renderPoap(){
-  const board=document.getElementById("poapBoard"); if(!board) return;
-  const overall=calculatePoapOverallProgress();
-  const inProgress=poapActivities.filter(a=>poapActivityProgress(a)>0&&poapActivityProgress(a)<100).length;
-  const complete=poapActivities.filter(a=>poapActivityProgress(a)>=100||a.status==="Completed").length;
-  const atRisk=poapActivities.filter(a=>["At Risk","Behind"].includes(a.status)).length;
-  const summary=document.getElementById("poapProgressSummary"); if(summary) summary.innerHTML=[['Overall Complete',pct(overall,0)],['Activities',poapActivities.length],['In Progress',inProgress],['At Risk / Behind',atRisk]].map(([l,v])=>`<div class="poap-progress-item"><span class="small-note">${esc(l)}</span><strong>${esc(v)}</strong><div class="poap-progress-bar"><i style="width:${l==='Overall Complete'?overall:0}%"></i></div></div>`).join('');
-  if(!poapWorkstreams.length){ board.innerHTML=`<div class="poap-empty"><h3>No POAP workstreams yet</h3><p>Add a workstream, then add and schedule activities.</p></div>`; renderPoapEditor(); return; }
-  const labels=weeks().map(w=>{ const left=((w-1)/WEEK_COUNT)*100,width=100/WEEK_COUNT; const d=weekDates[w]; return `<div class="poap-week-label" style="left:${left}%;width:${width}%"><strong>W${w}</strong><span>${d?formatShortDate(d):''}</span></div>`; }).join('');
-  const todayWeek=settings.startDate?deriveCurrentWeekFromStartDate(settings.startDate):0;
-  const todayLine=todayWeek>=1&&todayWeek<=WEEK_COUNT?`<div class="poap-today" style="left:${((todayWeek-1)/WEEK_COUNT)*100}%"></div>`:'';
-  board.style.setProperty('--poap-weeks',WEEK_COUNT);
-  board.innerHTML=`<div class="poap-scale"><div class="poap-scale-title">Workstream / Activity</div><div class="poap-week-scale">${labels}</div></div>`+poapWorkstreams.sort((a,b)=>a.order-b.order).map(ws=>{
-    const acts=poapActivities.filter(a=>a.workstreamId===ws.id);
-    const wsp=acts.length?acts.reduce((s,a)=>s+poapActivityProgress(a),0)/acts.length:0;
-    const bars=acts.map((a,i)=>{ const left=((a.startWeek-1)/WEEK_COUNT)*100,width=((a.endWeek-a.startWeek+1)/WEEK_COUNT)*100; const status='status-'+a.status.toLowerCase().replace(/\s+/g,'-'); return `<div class="poap-activity ${status} ${a.id===selectedPoapActivityId?'selected':''}" data-id="${esc(a.id)}" draggable="${isAdminMode()}" style="left:${left}%;width:${width}%;top:${14+(i%2)*38}px" title="${esc(a.name)} · W${a.startWeek}–W${a.endWeek} · ${pct(poapActivityProgress(a),0)}"><span class="poap-resize left" data-edge="left"></span>${esc(a.name)}<span class="poap-resize right" data-edge="right"></span></div>`; }).join('');
-    const minHeight=Math.max(78,20+Math.min(2,acts.length)*38);
-    return `<div class="poap-workstream" data-ws="${esc(ws.id)}" style="min-height:${minHeight}px"><div class="poap-workstream-info"><strong>${esc(ws.name)}</strong><small>${acts.length} activities · ${pct(wsp,0)}</small><div class="poap-workstream-actions no-print"><button class="action secondary admin-only" data-add-activity="${esc(ws.id)}">+ Activity</button><button class="action danger admin-only" data-delete-ws="${esc(ws.id)}">Delete</button></div></div><div class="poap-track" data-ws="${esc(ws.id)}" style="min-height:${minHeight}px">${todayLine}${bars}</div></div>`;
-  }).join('');
-  bindPoapBoardEvents(); renderPoapEditor();
-}
-function renderPoapEditor(){
-  const form=document.getElementById('poapEditorForm'), empty=document.getElementById('poapEditorEmpty'); if(!form||!empty) return;
-  const a=poapActivities.find(x=>x.id===selectedPoapActivityId);
-  if(!a){ form.hidden=true; empty.hidden=false; return; }
-  empty.hidden=true; form.hidden=false;
-  const wsSel=document.getElementById('poapActivityWorkstream'); wsSel.innerHTML=poapWorkstreams.map(w=>`<option value="${esc(w.id)}">${esc(w.name)}</option>`).join(''); wsSel.value=a.workstreamId;
-  document.getElementById('poapActivityName').value=a.name; document.getElementById('poapActivityDescription').value=a.description||''; document.getElementById('poapActivityStart').value=a.startWeek; document.getElementById('poapActivityEnd').value=a.endWeek; document.getElementById('poapActivityStatus').value=a.status; document.getElementById('poapActivityPriority').value=a.priority; document.getElementById('poapActivityWeight').value=a.weight; document.getElementById('poapActivityAutoProgress').textContent=pct(poapActivityProgress(a),0);
-  form.querySelectorAll('input,select,textarea,button').forEach(el=>{ if(el.id!=='deletePoapActivityBtn') el.disabled=isViewerMode(); });
-}
-function applyPoapEditor(){
-  if(!isAdminMode()) return; const a=poapActivities.find(x=>x.id===selectedPoapActivityId); if(!a) return;
-  a.workstreamId=document.getElementById('poapActivityWorkstream').value; a.name=document.getElementById('poapActivityName').value.trim()||'Activity'; a.description=document.getElementById('poapActivityDescription').value; a.startWeek=clamp(document.getElementById('poapActivityStart').value,1,WEEK_COUNT,1); a.endWeek=clamp(document.getElementById('poapActivityEnd').value,a.startWeek,WEEK_COUNT,a.startWeek); a.status=document.getElementById('poapActivityStatus').value; a.priority=document.getElementById('poapActivityPriority').value; a.weight=Math.max(.1,Number(document.getElementById('poapActivityWeight').value)||1); markDirty(); renderAll();
-}
-function bindPoapControls(){
-  document.getElementById('addPoapWorkstreamBtn')?.addEventListener('click',addPoapWorkstream); document.getElementById('addPoapActivityBtn')?.addEventListener('click',()=>addPoapActivity()); document.getElementById('savePoapBtn')?.addEventListener('click',()=>{ addAudit('POAP saved',`${poapWorkstreams.length} workstreams · ${poapActivities.length} activities · ${pct(calculatePoapOverallProgress(),0)} complete`); saveState(); renderAll(); }); document.getElementById('savePoapActivityBtn')?.addEventListener('click',applyPoapEditor); document.getElementById('deletePoapActivityBtn')?.addEventListener('click',()=>{ if(!isAdminMode()) return; const a=poapActivities.find(x=>x.id===selectedPoapActivityId); if(a&&confirm(`Delete ${a.name}?`)){ poapActivities=poapActivities.filter(x=>x.id!==a.id); selectedPoapActivityId=null; markDirty(); renderAll(); } });
-}
-function bindPoapBoardEvents(){
-  const board=document.getElementById('poapBoard'); if(!board) return;
-  board.querySelectorAll('[data-add-activity]').forEach(b=>b.addEventListener('click',()=>addPoapActivity(b.dataset.addActivity))); board.querySelectorAll('[data-delete-ws]').forEach(b=>b.addEventListener('click',()=>removePoapWorkstream(b.dataset.deleteWs)));
-  board.querySelectorAll('.poap-activity').forEach(el=>{
-    el.addEventListener('click',e=>{ if(e.target.classList.contains('poap-resize')) return; selectPoapActivity(el.dataset.id); });
-    el.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain',el.dataset.id); });
-    el.querySelectorAll('.poap-resize').forEach(handle=>handle.addEventListener('pointerdown',e=>startPoapResize(e,el.dataset.id,handle.dataset.edge)));
-  });
-  board.querySelectorAll('.poap-track').forEach(track=>{ track.addEventListener('dragover',e=>e.preventDefault()); track.addEventListener('drop',e=>{ if(!isAdminMode()) return; e.preventDefault(); const id=e.dataTransfer.getData('text/plain'); const a=poapActivities.find(x=>x.id===id); if(!a) return; const rect=track.getBoundingClientRect(); const week=clamp(Math.floor(((e.clientX-rect.left)/rect.width)*WEEK_COUNT)+1,1,WEEK_COUNT,1); const duration=a.endWeek-a.startWeek; a.startWeek=Math.min(week,WEEK_COUNT-duration); a.endWeek=a.startWeek+duration; a.workstreamId=track.dataset.ws; markDirty(); renderAll(); }); });
-}
-function startPoapResize(e,id,edge){
-  if(!isAdminMode()) return; e.preventDefault(); e.stopPropagation(); const a=poapActivities.find(x=>x.id===id); const track=e.target.closest('.poap-track'); if(!a||!track) return; const rect=track.getBoundingClientRect();
-  const move=ev=>{ const week=clamp(Math.floor(((ev.clientX-rect.left)/rect.width)*WEEK_COUNT)+1,1,WEEK_COUNT,1); if(edge==='left') a.startWeek=Math.min(week,a.endWeek); else a.endWeek=Math.max(week,a.startWeek); renderPoap(); };
-  const up=()=>{ window.removeEventListener('pointermove',move); window.removeEventListener('pointerup',up); markDirty(); renderAll(); };
-  window.addEventListener('pointermove',move); window.addEventListener('pointerup',up);
-}
-
-
 function printableBaseCss(){
   return `body{font-family:Arial,sans-serif;color:#172033;margin:28px;line-height:1.35}h1{margin:0 0 4px;font-size:24px}h2{margin:22px 0 8px;font-size:16px}.muted{color:#64748b}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}.card{border:1px solid #dbe3ef;border-radius:10px;padding:12px;background:#fff}.label{font-size:11px;text-transform:uppercase;color:#64748b;font-weight:700}.value{font-size:22px;font-weight:800;margin-top:8px}table{border-collapse:collapse;width:100%;margin-top:14px;font-size:12px}th,td{border:1px solid #dbe3ef;padding:7px;text-align:left;vertical-align:top}th{background:#f4f7fb}.num{text-align:right}.total{font-weight:800;background:#f8fafc}.note{border-left:4px solid #1d4ed8;background:#f8fbff;padding:10px 12px;margin-top:16px}.red{color:#b42318}.amber{color:#b45309}.green{color:#12805c}@page{size:A4 landscape;margin:12mm}@media print{button{display:none}}`;
 }
@@ -3008,7 +2847,7 @@ function parseDateCell(v){
 function printCustomerReport(){
   const m=metrics(), ds=statusDays(m.actualDaysToDate,m.forecastDaysToDate), vs=statusVAC(m.vac,m.bac), issues=getValidationIssues();
   const streamRows=Object.entries(getForecastResources().reduce((acc,r)=>{ const key=r.stream||"Unassigned"; acc[key]=acc[key]||{forecast:0,actual:0}; acc[key].forecast+=sumByWeek(r,"forecastByWeek",1,settings.currentWeek); acc[key].actual+=sumByWeek(r,"actualByWeek",1,settings.currentWeek); return acc; },{}));
-  const html=`<!doctype html><html><head><title>Financial Tracker Customer Report</title><style>${printableBaseCss().replace('@page{size:A4 landscape;margin:12mm}','@page{size:A4 portrait;margin:14mm}').replace('grid-template-columns:repeat(3,1fr)','grid-template-columns:repeat(4,1fr)')}</style></head><body><button onclick="window.print()">Print / Save as PDF</button><h1>Financial Tracker</h1><div class="muted">Customer summary pack · Project: ${esc(activeProject.name||'')} · generated ${new Date().toLocaleString("en-AU")} · current week ${m.currentWeek}</div><div class="grid"><div class="card"><div class="label">% Complete</div><div class="value">${pct(effectivePercentComplete(),1)}</div></div><div class="card"><div class="label">Forecast Days Total</div><div class="value">${num(m.forecastDaysTotal,1)}</div></div><div class="card"><div class="label">Actual Days to Date</div><div class="value">${num(m.actualDaysToDate,1)}</div></div><div class="card"><div class="label">Days Status</div><div class="value ${ds.level}">${ds.label}</div></div></div><h2>Summary</h2><table><tbody><tr><th>Forecast days to date</th><td class="num">${num(m.forecastDaysToDate,1)}</td></tr><tr><th>Actual days to date</th><td class="num">${num(m.actualDaysToDate,1)}</td></tr><tr><th>Actual vs forecast days variance</th><td class="num">${num(m.actualForecastVariance,1)}</td></tr><tr><th>Commercial status</th><td class="${vs.level}">${vs.label}</td></tr></tbody></table><h2>Stream Summary</h2><table><thead><tr><th>Stream</th><th class="num">Forecast Days to Date</th><th class="num">Actual Days to Date</th><th class="num">Variance</th></tr></thead><tbody>${streamRows.map(([stream,v])=>`<tr><td>${esc(stream)}</td><td class="num">${num(v.forecast,1)}</td><td class="num">${num(v.actual,1)}</td><td class="num">${num(v.actual-v.forecast,1)}</td></tr>`).join("")}</tbody></table><h2>Validation Summary</h2>${issues.length?`<p class="red">${issues.length} validation issue(s) exist. Resolve before formal customer issue.</p>`:`<p class="green">No validation issues found.</p>`}<h2>Change Control</h2><table><thead><tr><th>CR Ref</th><th>Description</th><th>Status</th></tr></thead><tbody>${forecastChangeRequests.length?forecastChangeRequests.map(cr=>`<tr><td>${esc(cr.ref)}</td><td>${esc(cr.description)}</td><td>${esc(cr.status)}</td></tr>`).join(""):`<tr><td colspan="3">No forecast change requests recorded.</td></tr>`}</tbody></table><p class="muted">Customer pack intentionally excludes individual names, day rates and internal cost lines. Use the app internal view for detailed commercial controls.</p></body></html>`;
+  const html=`<!doctype html><html><head><title>Financial Tracker Customer Report</title><style>${printableBaseCss().replace('@page{size:A4 landscape;margin:12mm}','@page{size:A4 portrait;margin:14mm}').replace('grid-template-columns:repeat(3,1fr)','grid-template-columns:repeat(4,1fr)')}</style></head><body><button onclick="window.print()">Print / Save as PDF</button><h1>Financial Tracker</h1><div class="muted">Customer summary pack · Project: ${esc(activeProject.name||'')} · generated ${new Date().toLocaleString("en-AU")} · current week ${m.currentWeek}</div><div class="grid"><div class="card"><div class="label">% Complete</div><div class="value">${pct(settings.percentComplete,1)}</div></div><div class="card"><div class="label">Forecast Days Total</div><div class="value">${num(m.forecastDaysTotal,1)}</div></div><div class="card"><div class="label">Actual Days to Date</div><div class="value">${num(m.actualDaysToDate,1)}</div></div><div class="card"><div class="label">Days Status</div><div class="value ${ds.level}">${ds.label}</div></div></div><h2>Summary</h2><table><tbody><tr><th>Forecast days to date</th><td class="num">${num(m.forecastDaysToDate,1)}</td></tr><tr><th>Actual days to date</th><td class="num">${num(m.actualDaysToDate,1)}</td></tr><tr><th>Actual vs forecast days variance</th><td class="num">${num(m.actualForecastVariance,1)}</td></tr><tr><th>Commercial status</th><td class="${vs.level}">${vs.label}</td></tr></tbody></table><h2>Stream Summary</h2><table><thead><tr><th>Stream</th><th class="num">Forecast Days to Date</th><th class="num">Actual Days to Date</th><th class="num">Variance</th></tr></thead><tbody>${streamRows.map(([stream,v])=>`<tr><td>${esc(stream)}</td><td class="num">${num(v.forecast,1)}</td><td class="num">${num(v.actual,1)}</td><td class="num">${num(v.actual-v.forecast,1)}</td></tr>`).join("")}</tbody></table><h2>Validation Summary</h2>${issues.length?`<p class="red">${issues.length} validation issue(s) exist. Resolve before formal customer issue.</p>`:`<p class="green">No validation issues found.</p>`}<h2>Change Control</h2><table><thead><tr><th>CR Ref</th><th>Description</th><th>Status</th></tr></thead><tbody>${forecastChangeRequests.length?forecastChangeRequests.map(cr=>`<tr><td>${esc(cr.ref)}</td><td>${esc(cr.description)}</td><td>${esc(cr.status)}</td></tr>`).join(""):`<tr><td colspan="3">No forecast change requests recorded.</td></tr>`}</tbody></table><p class="muted">Customer pack intentionally excludes individual names, day rates and internal cost lines. Use the app internal view for detailed commercial controls.</p></body></html>`;
   const w=window.open("","_blank"); if(!w){ alert("Popup blocked. Allow popups to generate the customer report."); return; }
   w.document.write(html); w.document.close();
 }

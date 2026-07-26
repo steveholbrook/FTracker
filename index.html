@@ -182,6 +182,17 @@ canvas { font-size: var(--app-font-size) !important; }
 .poap-editor{position:sticky;top:12px;right:0;max-height:76vh;overflow:auto}
 .poap-workstream-info .ws-title strong{overflow-wrap:anywhere}
 @media(max-width:1100px){.poap-layout{grid-template-columns:1fr}.poap-editor{position:static;max-height:none}.poap-board{max-height:62vh}}
+
+/* POAP v4.3 Gantt behaviour */
+.poap-scale-title{display:flex;align-items:center;min-height:54px;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+.poap-workstream-info{min-height:78px}
+.poap-track{overflow:visible}
+.poap-today{background:#dc2626;width:2px;z-index:8;box-shadow:0 0 0 1px rgba(255,255,255,.7)}
+.poap-today::before{content:'TODAY';top:-20px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;border-radius:4px;padding:2px 5px;font-size:8px;line-height:1;white-space:nowrap}
+.poap-today-row::before{display:none}
+.poap-week-scale{overflow:visible}
+.poap-activity{min-width:22px}
+.poap-empty-label{font-weight:800;color:var(--brand-dark)}
 </style>
 </head>
 <body>
@@ -301,7 +312,7 @@ canvas { font-size: var(--app-font-size) !important; }
 <section id="poapView" class="view">
   <div class="panel">
     <div class="panel-header">
-      <div><h2>POAP — Plan on a Page</h2><p>Create workstreams and schedule activities against the project timeline. Drag activities to move them and drag either edge to resize.</p></div>
+      <div><h2>POAP — Plan on a Page</h2><p>Create workstreams in the left column and place activities on the Gantt timeline. Drag activities to move them and drag either edge to resize.</p></div>
       <div class="poap-toolbar no-print">
         <label class="control"><span>Timeline</span><select id="poapIntervalToggle"><option value="week">Weeks</option><option value="month">Months</option></select></label>
         <button class="action admin-only" id="addPoapWorkstreamBtn">Add Workstream</button>
@@ -326,7 +337,7 @@ canvas { font-size: var(--app-font-size) !important; }
             <div class="two-col"><label class="control"><span>Start Week</span><input id="poapActivityStart" type="number" min="1"></label><label class="control"><span>End Week</span><input id="poapActivityEnd" type="number" min="1"></label></div>
             <label class="control"><span>Status</span><select id="poapActivityStatus"><option>Not Started</option><option>In Progress</option><option>At Risk</option><option>Behind</option><option>Completed</option></select></label>
             <label class="control"><span>Priority</span><select id="poapActivityPriority"><option>Low</option><option selected>Medium</option><option>High</option></select></label>
-            <label class="control"><span>Colour</span><select id="poapActivityColour"><option value="green">Green</option><option value="blue">Blue</option><option value="amber">Amber</option><option value="red">Red</option><option value="purple">Purple</option><option value="teal">Teal</option><option value="grey">Grey</option></select></label>
+            <label class="control"><span>Colour</span><select id="poapActivityColour"><option value="blue" selected>Blue</option><option value="green">Green</option><option value="amber">Amber</option><option value="red">Red</option><option value="purple">Purple</option><option value="teal">Teal</option><option value="grey">Grey</option></select></label>
             <label class="control"><span>Weight</span><input id="poapActivityWeight" type="number" min="0.1" step="0.1" value="1"></label>
             <div class="login-actions"><button class="action admin-only" id="savePoapActivityBtn">Apply</button><button class="action danger admin-only" id="deletePoapActivityBtn">Delete</button></div>
             <div class="small-note">Auto progress: <strong id="poapActivityAutoProgress">0%</strong>, based on planned dates and today's date.</div>
@@ -772,7 +783,7 @@ function calculateActualCostToWeek(currentWeek){ return resources.reduce((s,r)=>
 function calculateForecastCostToWeek(currentWeek){ return getForecastResources().reduce((s,r)=>s+sumByWeek(r,"forecastByWeek",1,currentWeek)*(Number(r.dayRate)||0),0); }
 
 function normalisePoapWorkstream(w){ return {id:String(w?.id||`ws-${Date.now()}-${Math.random().toString(36).slice(2,7)}`),name:String(w?.name||"Workstream"),order:Number(w?.order)||0}; }
-function normalisePoapActivity(a){ if(!a) return null; const allowed=["green","blue","amber","red","purple","teal","grey"]; return {id:String(a.id||`act-${Date.now()}-${Math.random().toString(36).slice(2,7)}`),workstreamId:String(a.workstreamId||""),name:String(a.name||"Activity"),description:String(a.description||""),startWeek:clamp(a.startWeek,1,WEEK_COUNT,1),endWeek:clamp(a.endWeek,1,WEEK_COUNT,1),status:String(a.status||"Not Started"),priority:String(a.priority||"Medium"),colour:allowed.includes(String(a.colour||"green"))?String(a.colour||"green"):"green",weight:Math.max(.1,Number(a.weight)||1)}; }
+function normalisePoapActivity(a){ if(!a) return null; const allowed=["green","blue","amber","red","purple","teal","grey"]; return {id:String(a.id||`act-${Date.now()}-${Math.random().toString(36).slice(2,7)}`),workstreamId:String(a.workstreamId||""),name:String(a.name||"Activity"),description:String(a.description||""),startWeek:clamp(a.startWeek,1,WEEK_COUNT,1),endWeek:clamp(a.endWeek,1,WEEK_COUNT,1),status:String(a.status||"Not Started"),priority:String(a.priority||"Medium"),colour:allowed.includes(String(a.colour||"blue"))?String(a.colour||"blue"):"blue",weight:Math.max(.1,Number(a.weight)||1)}; }
 function poapActivityProgress(a, today=new Date()){
   if(!settings.startDate) return 0;
   const projectStart=parseLocalIsoDate(settings.startDate); if(!projectStart) return 0;
@@ -2055,21 +2066,28 @@ function addPoapWorkstream(){
   poapWorkstreams=[...poapWorkstreams,workstream];
   addAudit("POAP workstream added",workstream.name);
   markDirty();
-  renderPoap();
-  renderPoapEditor();
-  updateWizard();
+  renderAll();
   requestAnimationFrame(()=>{
     const row=document.querySelector(`.poap-workstream[data-ws="${CSS.escape(workstream.id)}"]`);
-    if(row) row.scrollIntoView({behavior:'smooth',block:'nearest'});
+    if(row) row.scrollIntoView({behavior:'smooth',block:'nearest',inline:'nearest'});
   });
+}
+function defaultPoapActivityRange(){
+  const start=Math.max(1,Math.min(WEEK_COUNT,Number(settings.currentWeek)||deriveCurrentWeekFromStartDate(settings.startDate)||1));
+  if((settings.poapInterval||"week")==="month" && settings.startDate){
+    const months=poapTimelineMonths();
+    const bucket=months.find(m=>start>=m.startWeek&&start<=m.endWeek)||months[0];
+    if(bucket) return {start:bucket.startWeek,end:bucket.endWeek};
+  }
+  return {start,end:start};
 }
 function addPoapActivity(workstreamId){
   if(!isAdminMode()) return;
   if(!poapWorkstreams.length){ alert("Add a workstream before creating an activity."); return; }
   const ws=workstreamId||poapWorkstreams[0].id;
-  const start=Math.max(1,settings.currentWeek||1), end=Math.min(WEEK_COUNT,start+3);
-  const a=normalisePoapActivity({workstreamId:ws,name:"New Activity",startWeek:start,endWeek:end,status:"Not Started",priority:"Medium",colour:"green",weight:1});
-  poapActivities.push(a); selectedPoapActivityId=a.id; markDirty(); renderPoap(); updateWizard();
+  const range=defaultPoapActivityRange();
+  const a=normalisePoapActivity({workstreamId:ws,name:"New Activity",startWeek:range.start,endWeek:range.end,status:"Not Started",priority:"Medium",colour:"blue",weight:1});
+  poapActivities.push(a); selectedPoapActivityId=a.id; markDirty(); renderAll();
 }
 function removePoapWorkstream(id){
   if(!isAdminMode()) return;
@@ -2089,7 +2107,7 @@ function poapColourStyle(colour){
     teal:{bg:'#c7eee8',border:'#5eaea2',text:'#174d46'},
     grey:{bg:'#e4e8ee',border:'#9aa6b5',text:'#344054'}
   };
-  return palette[colour]||palette.green;
+  return palette[colour]||palette.blue;
 }
 function poapTimelineMonths(){
   if(!settings.startDate) return [];
@@ -2103,7 +2121,9 @@ function poapTimelineMonths(){
     const monthEnd=new Date(Math.min(next.getTime()-86400000,end.getTime()));
     const left=((monthStart-start)/86400000)/totalDays*100;
     const width=(((monthEnd-monthStart)/86400000)+1)/totalDays*100;
-    months.push({label:cursor.toLocaleDateString('en-AU',{month:'short',year:'numeric'}),left,width,from:monthStart,to:monthEnd});
+    const startWeek=clamp(Math.floor((monthStart-start)/(7*86400000))+1,1,WEEK_COUNT,1);
+    const endWeek=clamp(Math.floor((monthEnd-start)/(7*86400000))+1,1,WEEK_COUNT,startWeek);
+    months.push({label:cursor.toLocaleDateString('en-AU',{month:'short',year:'numeric'}),left,width,from:monthStart,to:monthEnd,startWeek,endWeek});
     cursor=next;
   }
   return months;
@@ -2132,7 +2152,7 @@ function renderPoap(){
   }
   const todayWeek=settings.startDate?deriveCurrentWeekFromStartDate(settings.startDate):0;
   const todayLine=todayWeek>=1&&todayWeek<=horizon?`<div class="poap-today" style="left:${poapPositionFromWeek(todayWeek)}%"></div>`:'';
-  const scale=`<div class="poap-scale"><div class="poap-scale-title">Workstream / Activity</div><div class="poap-week-scale">${labels}</div></div>`;
+  const scale=`<div class="poap-scale"><div class="poap-scale-title">Workstream</div><div class="poap-week-scale">${labels}${todayLine}</div></div>`;
 
   const sorted=poapWorkstreams.slice().sort((a,b)=>(Number(a.order)||0)-(Number(b.order)||0));
   const rows=sorted.map(ws=>{
@@ -2142,10 +2162,10 @@ function renderPoap(){
     const bars=acts.map((a,i)=>{ const left=poapPositionFromWeek(a.startWeek),width=poapWidthFromWeeks(a.startWeek,a.endWeek); const c=poapColourStyle(a.colour); const progress=poapActivityProgress(a); return `<div class="poap-activity ${a.id===selectedPoapActivityId?'selected':''}" data-id="${esc(a.id)}" draggable="${isAdminMode()}" style="left:${left}%;width:${width}%;top:${12+i*42}px;--activity-color:${c.bg};--activity-border:${c.border};--activity-text:${c.text}" title="${esc(a.name)} · W${a.startWeek}–W${a.endWeek} · ${pct(progress,0)}"><span class="poap-resize left" data-edge="left"></span><span class="activity-label">${esc(a.name)}</span><span class="poap-resize right" data-edge="right"></span><span class="activity-progress" style="width:${progress}%"></span></div>`; }).join('');
     const minHeight=Math.max(78,34+acts.length*42);
     const bg=interval==='month'?`calc(100% / ${Math.max(1,poapTimelineMonths().length)}) 100%`:'calc(100% / var(--poap-weeks)) 100%';
-    return `<div class="poap-workstream" data-ws="${esc(ws.id)}" style="min-height:${minHeight}px"><div class="poap-workstream-info"><div class="ws-title"><strong>${esc(ws.name)}</strong><span class="ws-progress">${pct(wsp,0)}</span></div><small>${acts.length} ${acts.length===1?'activity':'activities'}</small><div class="poap-workstream-actions no-print"><button class="action secondary admin-only" data-add-activity="${esc(ws.id)}">+ Activity</button><button class="action danger admin-only" data-delete-ws="${esc(ws.id)}">Delete</button></div></div><div class="poap-track" data-ws="${esc(ws.id)}" style="min-height:${minHeight}px;background-size:${bg}">${todayLine}${bars}</div></div>`;
+    return `<div class="poap-workstream" data-ws="${esc(ws.id)}" style="min-height:${minHeight}px"><div class="poap-workstream-info"><div class="ws-title"><strong>${esc(ws.name)}</strong><span class="ws-progress">${pct(wsp,0)}</span></div><small>${acts.length} ${acts.length===1?'activity':'activities'}</small><div class="poap-workstream-actions no-print"><button class="action secondary admin-only" data-add-activity="${esc(ws.id)}">+ Activity</button><button class="action danger admin-only" data-delete-ws="${esc(ws.id)}">Delete</button></div></div><div class="poap-track" data-ws="${esc(ws.id)}" style="min-height:${minHeight}px;background-size:${bg}">${todayLine.replace('poap-today','poap-today poap-today-row')}${bars}</div></div>`;
   }).join('');
 
-  const empty=!sorted.length?`<div class="poap-empty-row"><div class="poap-empty-label">No workstreams</div><div class="poap-empty-track">Add a workstream to begin. The project timeline remains visible.</div></div>`:'';
+  const empty=!sorted.length?`<div class="poap-empty-row"><div class="poap-empty-label">No workstreams</div><div class="poap-empty-track">Add a workstream to begin building the Gantt chart. The project timeline is shown above.</div></div>`:'';
   board.innerHTML=scale+rows+empty;
   bindPoapBoardEvents();
   renderPoapEditor();
@@ -2157,7 +2177,7 @@ function renderPoapEditor(){
   if(!a){ form.hidden=true; empty.hidden=false; return; }
   empty.hidden=true; form.hidden=false;
   const wsSel=document.getElementById('poapActivityWorkstream'); wsSel.innerHTML=poapWorkstreams.map(w=>`<option value="${esc(w.id)}">${esc(w.name)}</option>`).join(''); wsSel.value=a.workstreamId;
-  document.getElementById('poapActivityName').value=a.name; document.getElementById('poapActivityDescription').value=a.description||''; document.getElementById('poapActivityStart').value=a.startWeek; document.getElementById('poapActivityEnd').value=a.endWeek; document.getElementById('poapActivityStatus').value=a.status; document.getElementById('poapActivityPriority').value=a.priority; document.getElementById('poapActivityColour').value=a.colour||'green'; document.getElementById('poapActivityWeight').value=a.weight; document.getElementById('poapActivityAutoProgress').textContent=pct(poapActivityProgress(a),0);
+  document.getElementById('poapActivityName').value=a.name; document.getElementById('poapActivityDescription').value=a.description||''; document.getElementById('poapActivityStart').value=a.startWeek; document.getElementById('poapActivityEnd').value=a.endWeek; document.getElementById('poapActivityStatus').value=a.status; document.getElementById('poapActivityPriority').value=a.priority; document.getElementById('poapActivityColour').value=a.colour||'blue'; document.getElementById('poapActivityWeight').value=a.weight; document.getElementById('poapActivityAutoProgress').textContent=pct(poapActivityProgress(a),0);
   form.querySelectorAll('input,select,textarea,button').forEach(el=>{ if(el.id!=='deletePoapActivityBtn') el.disabled=isViewerMode(); });
 }
 function applyPoapEditor(){
@@ -2165,7 +2185,7 @@ function applyPoapEditor(){
   a.workstreamId=document.getElementById('poapActivityWorkstream').value; a.name=document.getElementById('poapActivityName').value.trim()||'Activity'; a.description=document.getElementById('poapActivityDescription').value; a.startWeek=clamp(document.getElementById('poapActivityStart').value,1,WEEK_COUNT,1); a.endWeek=clamp(document.getElementById('poapActivityEnd').value,a.startWeek,WEEK_COUNT,a.startWeek); a.status=document.getElementById('poapActivityStatus').value; a.priority=document.getElementById('poapActivityPriority').value; a.colour=document.getElementById('poapActivityColour').value; a.weight=Math.max(.1,Number(document.getElementById('poapActivityWeight').value)||1); markDirty(); renderAll();
 }
 function bindPoapControls(){
-  document.getElementById('poapIntervalToggle')?.addEventListener('change',e=>{ settings.poapInterval=e.target.value==='month'?'month':'week'; markDirty(); renderPoap(); });
+  document.getElementById('poapIntervalToggle')?.addEventListener('change',e=>{ settings.poapInterval=e.target.value==='month'?'month':'week'; markDirty(); renderAll(); });
   document.getElementById('addPoapWorkstreamBtn')?.addEventListener('click',addPoapWorkstream); document.getElementById('addPoapActivityBtn')?.addEventListener('click',()=>addPoapActivity()); document.getElementById('savePoapBtn')?.addEventListener('click',()=>{ addAudit('POAP saved',`${poapWorkstreams.length} workstreams · ${poapActivities.length} activities · ${pct(calculatePoapOverallProgress(),0)} complete`); saveState(); renderAll(); }); document.getElementById('savePoapActivityBtn')?.addEventListener('click',applyPoapEditor); document.getElementById('deletePoapActivityBtn')?.addEventListener('click',()=>{ if(!isAdminMode()) return; const a=poapActivities.find(x=>x.id===selectedPoapActivityId); if(a&&confirm(`Delete ${a.name}?`)){ poapActivities=poapActivities.filter(x=>x.id!==a.id); selectedPoapActivityId=null; markDirty(); renderAll(); } });
 }
 function bindPoapBoardEvents(){

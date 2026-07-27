@@ -420,7 +420,7 @@ canvas { font-size: var(--app-font-size) !important; }
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-analytics-compat.js"></script>
 <script>
 "use strict";
-const APP_VERSION = "3.15.0-executive-status";
+const APP_VERSION = "3.15.1-dashboard-rag-priority";
 const STORAGE_KEY = "financialTracker.blank.v2";
 const FIREBASE_SETTINGS_KEY = STORAGE_KEY + ".firebase";
 const DEFAULT_FIREBASE_PROJECT_KEY = "gwf";
@@ -3010,7 +3010,7 @@ function statusDeckAddMetric(pptx,slide,x,y,w,label,value,context,accent,valueFo
 function statusDeckAddStatusBand(pptx,slide,snapshot){
   const C=statusDeckColours(), shape=(pptx.ShapeType||{}), fill=statusDeckStatusColour(snapshot.overallStatus,C);
   slide.addShape(shape.roundRect||"roundRect",{x:.72,y:1.48,w:11.88,h:.78,rectRadius:.08,line:{color:fill,transparency:100},fill:{color:fill}});
-  slide.addText(statusDeckTruncate(snapshot.headline,70),{x:1.02,y:1.75,w:9.05,h:.23,fontFace:"Aptos Display",fontSize:15,bold:true,color:C.white,margin:0,breakLine:false});
+  slide.addText(statusDeckTruncate(snapshot.headline,90),{x:1.02,y:1.75,w:9.05,h:.23,fontFace:"Aptos Display",fontSize:15,bold:true,color:C.white,margin:0,breakLine:false,fit:"shrink"});
   slide.addShape(shape.roundRect||"roundRect",{x:10.55,y:1.62,w:1.72,h:.46,line:{color:C.white,pt:1.2},fill:{color:fill,transparency:100}});
   slide.addText(snapshot.overallStatus.toUpperCase(),{x:10.62,y:1.73,w:1.58,h:.2,fontFace:"Aptos",fontSize:15,bold:true,color:C.white,align:"center",margin:0,breakLine:false});
 }
@@ -3065,15 +3065,16 @@ function buildExecutiveStatusSnapshot(){
   if(chartLabels.length<2){ chartLabels.push("W1"); cumulativeActual.push(0); cumulativeForecast.push(0); }
   const cpiLevel=performanceStatus(m.cpi), spiLevel=performanceStatus(m.spi);
   const actualsStale=m.actualsLoadedToWeek<m.reportingWeek;
-  const issueLevel=issueCounts.high>0?"red":(issueCounts.medium>0?"amber":"green");
-  const overallStatus=statusDeckWorstStatus([daysStatus.level,financialStatus.level,cpiLevel,spiLevel,issueLevel,actualsStale?"amber":"green"]);
+  // The executive project RAG must mirror the completed-week Dashboard controls.
+  // Validation findings, current-week freshness and supporting indices remain visible
+  // as assurance context, but do not override delivery or financial project health.
+  const overallStatus=statusDeckWorstStatus([daysStatus.level,financialStatus.level]);
   let headline=`Delivery and financial performance remain within tolerance through ${weekNumberLabel(m.reportingWeek)}.`;
   if(m.reportingWeek===0) headline="The project has not yet completed its first reporting week.";
-  else if(actualsStale) headline=`Actuals are loaded only to ${weekNumberLabel(m.actualsLoadedToWeek,"no week")}, below the ${weekNumberLabel(m.reportingWeek)} reporting cut-off.`;
   else if(financialStatus.level==="red") headline="The forecast at completion is materially above the approved baseline.";
   else if(daysStatus.level==="red") headline="Delivery effort is materially above the completed-week forecast.";
-  else if(cpiLevel==="red"||spiLevel==="red") headline="Earned-value performance requires immediate recovery action.";
   else if(overallStatus==="amber") headline="Performance is broadly controlled, with specific exceptions requiring management attention.";
+  else if(actualsStale) headline=`Delivery and financial controls remain within tolerance; actuals require completion through ${weekNumberLabel(m.reportingWeek)}.`;
   const openChangeRequests=forecastChangeRequests.filter(cr=>!["Rejected","Incorporated"].includes(cr.status));
   const draftInvoices=invoicePeriods.filter(p=>p.status==="Draft");
   const actions=[];
@@ -3083,8 +3084,8 @@ function buildExecutiveStatusSnapshot(){
     actions.push(driver?`Review ${driver.name} / ${driver.role}, the largest effort variance driver at ${driver.varianceDays>0?"+":""}${statusDeckNumber(driver.varianceDays,1)} days.`:"Review completed-week effort variance and agree recovery actions.");
   }
   if(m.vac<0) actions.push(`Confirm the commercial recovery plan for the ${statusDeckShortCurrency(Math.abs(m.vac))} forecast budget overrun.`);
-  if(issueCounts.high>0) actions.push(`Resolve ${issueCounts.high} high-severity validation issue${issueCounts.high===1?"":"s"} before formal distribution.`);
-  else if(issueCounts.medium>0) actions.push(`Close or accept ${issueCounts.medium} medium-severity validation exception${issueCounts.medium===1?"":"s"}.`);
+  if(issueCounts.high>0) actions.push(`Review and disposition ${issueCounts.high} high-severity validation note${issueCounts.high===1?"":"s"} before formal distribution.`);
+  else if(issueCounts.medium>0) actions.push(`Review or accept ${issueCounts.medium} medium-severity validation note${issueCounts.medium===1?"":"s"}.`);
   if(openChangeRequests.length) actions.push(`Approve, reject or incorporate ${openChangeRequests.length} open forecast change request${openChangeRequests.length===1?"":"s"}.`);
   if(draftInvoices.length) actions.push(`Progress ${draftInvoices.length} draft invoice${draftInvoices.length===1?"":"s"} through PM and Finance review.`);
   if(!actions.length) actions.push("Maintain the weekly reporting cadence and continue exception-based monitoring.");
@@ -3152,7 +3153,7 @@ function buildExecutiveStatusPresentation(snapshot,PptxCtor){
   slide.addText("DELIVERY",{x:.75,y:2.63,w:5.8,h:.23,fontFace:"Aptos",fontSize:14,bold:true,color:C.blue,margin:0,charSpacing:1.2});
   statusDeckAddMetric(pptx,slide,.75,3.02,1.65,"% Complete",statusDeckPercent(snapshot.percentComplete,1),`As at ${snapshot.reportingLabel}`,C.blue);
   statusDeckAddMetric(pptx,slide,2.62,3.02,1.72,"Actual Days",statusDeckNumber(snapshot.metrics.actualDaysToDate,1),`Forecast ${statusDeckNumber(snapshot.metrics.forecastDaysToDate,1)}`,statusDeckStatusColour(snapshot.daysStatus.level,C));
-  statusDeckAddMetric(pptx,slide,4.57,3.02,1.72,"Days Variance",`${snapshot.metrics.actualForecastVariance>0?"+":""}${statusDeckNumber(snapshot.metrics.actualForecastVariance,1)}`,snapshot.daysStatus.label,C.amber);
+  statusDeckAddMetric(pptx,slide,4.57,3.02,1.72,"Days Variance",`${snapshot.metrics.actualForecastVariance>0?"+":""}${statusDeckNumber(snapshot.metrics.actualForecastVariance,1)}`,snapshot.daysStatus.label,statusDeckStatusColour(snapshot.daysStatus.level,C));
   slide.addShape(shape.line||"line",{x:6.61,y:2.64,w:0,h:2.02,line:{color:C.line,pt:1}});
   slide.addText("FINANCIAL",{x:6.95,y:2.63,w:5.5,h:.23,fontFace:"Aptos",fontSize:14,bold:true,color:C.teal,margin:0,charSpacing:1.2});
   statusDeckAddMetric(pptx,slide,6.95,3.02,1.72,"BAC",statusDeckShortCurrency(snapshot.metrics.bac),`EAC ${statusDeckShortCurrency(snapshot.metrics.eac)}`,C.teal);
@@ -3163,7 +3164,7 @@ function buildExecutiveStatusPresentation(snapshot,PptxCtor){
   slide.addText(`${snapshot.currentWeekLabel} current week`,{x:3.16,y:5.31,w:2.35,h:.52,fontFace:"Aptos Display",fontSize:17,bold:true,color:C.navy,margin:0,fit:"shrink"});
   slide.addText(`${statusDeckNumber(snapshot.metrics.currentWeekActualDays,1)} actual / ${statusDeckNumber(snapshot.metrics.currentWeekForecastDays,1)} forecast days`,{x:3.16,y:5.91,w:2.55,h:.21,fontFace:"Aptos",fontSize:11,color:C.muted,margin:0,fit:"shrink"});
   slide.addText(`${snapshot.actualsLoadedToLabel} actuals loaded`,{x:6.05,y:5.31,w:2.55,h:.52,fontFace:"Aptos Display",fontSize:17,bold:true,color:snapshot.actualsStale?C.amber:C.navy,margin:0,fit:"shrink"});
-  slide.addText(`${snapshot.issueCounts.high} high · ${snapshot.issueCounts.medium} medium validation issues`,{x:6.05,y:5.91,w:2.75,h:.21,fontFace:"Aptos",fontSize:11,color:C.muted,margin:0,fit:"shrink"});
+  slide.addText(`${snapshot.issueCounts.high} high · ${snapshot.issueCounts.medium} medium validation notes`,{x:6.05,y:5.91,w:2.75,h:.21,fontFace:"Aptos",fontSize:11,color:C.muted,margin:0,fit:"shrink"});
   slide.addText(`${statusDeckNumber(snapshot.metrics.remainingForecastDays,1)} days remaining`,{x:9.18,y:5.31,w:2.85,h:.52,fontFace:"Aptos Display",fontSize:17,bold:true,color:C.navy,margin:0,fit:"shrink"});
   slide.addText(`${snapshot.currentWeekLabel} through W${WEEK_COUNT}`,{x:9.18,y:5.91,w:2.65,h:.21,fontFace:"Aptos",fontSize:11,color:C.muted,margin:0});
 
@@ -3254,8 +3255,8 @@ function buildExecutiveStatusPresentation(snapshot,PptxCtor){
   slide.addText(largestStream?`${statusDeckTruncate(largestStream.stream,19)} · ${largestStream.varianceDays>0?"+":""}${statusDeckNumber(largestStream.varianceDays,1)} days`:"No stream variance data",{x:10.38,y:5.71,w:1.85,h:.3,fontFace:"Aptos",fontSize:14,bold:true,color:C.navy,align:"right",margin:0,fit:"shrink"});
 
   slide=pptx.addSlide();
-  statusDeckAddHeader(pptx,slide,snapshot,"Focus management on controlled exceptions","Validation findings and open governance items are translated into specific actions.",6);
-  slide.addText("VALIDATION AND GOVERNANCE",{x:.75,y:1.5,w:5.8,h:.23,fontFace:"Aptos",fontSize:13,bold:true,color:C.blue,margin:0,charSpacing:.8});
+  statusDeckAddHeader(pptx,slide,snapshot,"Focus management on controlled exceptions","Assurance notes remain visible but do not override the completed-week delivery and financial RAG.",6);
+  slide.addText("VALIDATION NOTES AND GOVERNANCE",{x:.75,y:1.5,w:5.8,h:.23,fontFace:"Aptos",fontSize:13,bold:true,color:C.blue,margin:0,charSpacing:.8});
   const issues=snapshot.validationIssues.length?snapshot.validationIssues:[{severity:"Low",area:"Assurance",item:"No exceptions",message:"No validation issues were identified at the reporting cut-off."}];
   issues.slice(0,5).forEach((issue,index)=>{
     const y=1.94+(index*.82), level=issue.severity==="High"?"red":issue.severity==="Medium"?"amber":"green";
